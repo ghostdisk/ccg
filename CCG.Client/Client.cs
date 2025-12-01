@@ -73,12 +73,18 @@ public class Client {
                 OnMatchmakingStateChanged(matchmakingState);
                 break;
             case S2CGameStarted gameStarted:
-                game = new ClientGame(new ClientPlayer(), new ClientPlayer()); // Assuming ClientPlayer is parameterless
-                game.mulligansRemaining = GameRules.MaxMulliganCount;
-                foreach (int cardId in gameStarted.playerHandCardIds) {
-                    game.hand.Add(game.GetCard(cardId));
+                game = new ClientGame(new ClientPlayer(), new ClientPlayer());
+
+                game.player1.mulligansRemaining = gameStarted.myMulligans;
+                game.player2.mulligansRemaining = gameStarted.opponentMulligans;
+
+                foreach (int cardId in gameStarted.myHand) {
+                    game.player1.hand.Add(game.GetCard(cardId));
                 }
-                foreach (CardInfo cardInfo in gameStarted.localPlayerCardInfos) {
+                foreach (int cardId in gameStarted.opponentHand) {
+                    game.player2.hand.Add(game.GetCard(cardId));
+                }
+                foreach (CardInfo cardInfo in gameStarted.myHandInfos) {
                     game.RevealCard(cardInfo);
                 }
                 OnGameStarted();
@@ -108,6 +114,9 @@ public class Client {
     }
 
     protected virtual void OnLostConnection(String reason) {
+    }
+
+    protected virtual void OnMulliganDone() {
     }
 
     private void OnWSOpen(object sender, EventArgs e) {
@@ -143,16 +152,10 @@ public class Client {
     }
 
     protected virtual void HandleMulliganResult(S2CMulliganResult mulliganResult) {
-        if (game == null) return;
+        var player = game!.GetPlayer(mulliganResult.playerIndex);
 
-        if (mulliganResult.playerIndex == 0) { // This client's card
-            game.hand[mulliganResult.indexInHand] = game.GetCard(mulliganResult.newCardId);
-            game.mulligansRemaining--;
-        }
-    }
-
-    protected virtual void OnMulliganDone() {
-        // This can be overridden by CLIClient to log the event
+        player.hand[mulliganResult.indexInHand] = game.GetCard(mulliganResult.newCardId);
+        player.mulligansRemaining--;
     }
 }
 

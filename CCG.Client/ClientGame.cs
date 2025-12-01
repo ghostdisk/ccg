@@ -5,8 +5,6 @@ using System.Collections.Generic;
 
 public class ClientGame : Game<ClientPlayer, ClientGame> {
     public Dictionary<int, Card> knownCards = new Dictionary<int, Card>();
-    public List<Card> hand = new List<Card>();
-    public int mulligansRemaining = 0;
 
     public ClientGame(ClientPlayer player1, ClientPlayer player2) : base(player1, player2) {
     }
@@ -27,6 +25,8 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
 }
 
 public class ClientPlayer : Player<ClientPlayer, ClientGame> {
+    public int mulligansRemaining = 0;
+
     public ClientPlayer() {
     }
 }

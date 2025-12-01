@@ -16,7 +16,6 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
         ServerPlayer[] players = { player1, player2 };
 
         foreach (ServerPlayer player in players) {
-            List<int> handIds = new List<int>();
             List<CardInfo> handCardInfos = new List<CardInfo>();
 
             player.mulligansRemaining = GameRules.MaxMulliganCount;
@@ -32,11 +31,25 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
             for (int i = 0; i < GameRules.InitialHandSize; i++) {
                 Card card = player.deck.Draw()!;
                 player.hand.Add(card);
-                handIds.Add(card.card_id);
                 handCardInfos.Add(new CardInfo { cardId = card.card_id, cardPrototypeId = card.prototype.id });
             }
 
-            player.SendMessage(new S2CGameStarted { playerHandCardIds = handIds, localPlayerCardInfos = handCardInfos });
+        }
+
+        foreach (ServerPlayer player in players) {
+            S2CGameStarted message = new S2CGameStarted();
+
+            message.myMulligans = player.mulligansRemaining;
+            message.opponentMulligans = player.opponent.mulligansRemaining;
+
+            foreach (Card card in player.hand) {
+                message.myHand.Add(card.card_id);
+                message.myHandInfos.Add(new CardInfo { cardId = card.card_id, cardPrototypeId = card.prototype.id });
+            }
+            foreach (Card card in player.opponent.hand) {
+                message.opponentHand.Add(card.card_id);
+            }
+            player.SendMessage(message);
         }
     }
 

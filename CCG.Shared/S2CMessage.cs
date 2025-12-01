@@ -19,10 +19,11 @@ public class S2CErrorNotify : S2CMessage {
 
 [MessagePackObject]
 public class S2CGameStarted : S2CMessage {
-    [Key(0)]
-    public List<int> playerHandCardIds = new List<int>();
-    [Key(1)]
-    public List<CardInfo> localPlayerCardInfos = new List<CardInfo>();
+    [Key(0)] public List<int> myHand = new();
+    [Key(1)] public List<int> opponentHand = new();
+    [Key(2)] public int myMulligans = 0;
+    [Key(3)] public int opponentMulligans = 0;
+    [Key(4)] public List<CardInfo> myHandInfos = new();
 }
 
 [MessagePackObject]

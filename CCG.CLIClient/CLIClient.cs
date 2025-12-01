@@ -40,11 +40,11 @@ public class CLIClient : Client {
             Log("Game not started yet.");
             return;
         }
-        Log("Current Hand:");
-        for (int i = 0; i < game.hand.Count; i++) {
-            Log($"  {i}: {game.hand[i].card_id} ({game.hand[i].prototype.name})");
-        }
-        Log($"Mulligans remaining: {game.mulligansRemaining}");
+        Log("Hand:");
+        foreach (Card card in game.player1.hand)
+            Log($"    {card.prototype.name} (id:{card.card_id})");
+
+        Log($"Mulligans remaining: {game.player1.mulligansRemaining}");
     }
 
     public void MulliganCard(int index) {

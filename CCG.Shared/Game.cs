@@ -21,4 +21,8 @@ public class Game<TPlayer, TGame>
         player1.opponent = player2;
         player2.opponent = player1;
     }
+
+    public TPlayer GetPlayer(int index) {
+        return index > 0 ? player2 : player1;
+    }
 }
