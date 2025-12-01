@@ -10,7 +10,7 @@ public class CLIClient : Client {
         clientIndex = index;
     }
 
-    private void Log(string message) {
+    public void Log(string message) {
         Console.WriteLine($"[{clientIndex}] {message}");
     }
 
@@ -32,6 +32,23 @@ public class CLIClient : Client {
 
     public override void OnGameStarted() {
         Log("Game started!");
+        DisplayHand();
+    }
+
+    public void DisplayHand() {
+        Log("Current Hand:");
+        for (int i = 0; i < hand.Count; i++) {
+            Log($"  {i}: {hand[i].card_id}");
+        }
+        Log($"Mulligans remaining: {mulligansRemaining}");
+    }
+
+    public void MulliganCard(int index) {
+        Send(new C2SMulliganSwap { indexInHand = index });
+    }
+
+    public void DoneWithMulligan() {
+        Send(new C2SDoneWithMulligan());
     }
 
 }

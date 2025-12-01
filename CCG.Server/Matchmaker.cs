@@ -12,7 +12,7 @@ class Matchmaker {
 
         queue.Add(client);
 
-        if (queue.Count > 2) {
+        if (queue.Count >= 2) {
             Client client1 = queue[0];
             Client client2 = queue[1];
             queue.RemoveAt(0);

@@ -39,6 +39,12 @@ public class Program {
                         Console.WriteLine("Usage: mm join/leave");
                     }
                     break;
+                case "hand":
+                    HandleHandCommand();
+                    break;
+                case "mulligan":
+                    HandleMulliganCommand(parts);
+                    break;
                 case "exit":
                     Console.WriteLine("Exiting...");
                     return;
@@ -49,6 +55,28 @@ public class Program {
                     Console.WriteLine("Unknown command. Type 'help' for commands.");
                     break;
             }
+        }
+    }
+
+    private static void HandleHandCommand() {
+        if (clients.TryGetValue(currentClientIndex, out CLIClient? client)) {
+            client.DisplayHand();
+        } else {
+            Console.WriteLine($"Client {currentClientIndex} not found. Switch to or create it first.");
+        }
+    }
+
+    private static void HandleMulliganCommand(string[] parts) {
+        if (clients.TryGetValue(currentClientIndex, out CLIClient? client)) {
+            if (parts.Length == 2 && int.TryParse(parts[1], out int index)) {
+                client.MulliganCard(index);
+            } else if (parts.Length == 2 && parts[1].ToLower() == "done") {
+                client.DoneWithMulligan();
+            } else {
+                client.Log("Usage: mulligan <index> or mulligan done");
+            }
+        } else {
+            Console.WriteLine($"Client {currentClientIndex} not found. Switch to or create it first.");
         }
     }
 
@@ -91,11 +119,11 @@ public class Program {
         Console.WriteLine("Available commands:");
         Console.WriteLine("  client <number>   - Switch to or create client <number>");
         Console.WriteLine("  connect           - Connect current client to the server");
+        Console.WriteLine("  mm join           - Join matchmaking");
+        Console.WriteLine("  mm leave          - Leave matchmaking");
         Console.WriteLine("  hand              - Display current hand");
         Console.WriteLine("  mulligan <index>  - Mulligan card at index");
         Console.WriteLine("  mulligan done     - End mulligan phase");
-        Console.WriteLine("  mm join           - Join matchmaking");
-        Console.WriteLine("  mm leave          - Leave matchmaking");
         Console.WriteLine("  exit              - Exit the application");
         Console.WriteLine("  help              - Display this help message");
     }

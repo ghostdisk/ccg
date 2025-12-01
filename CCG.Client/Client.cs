@@ -14,6 +14,9 @@ public class Client {
     protected ClientState state = ClientState.NotConnected;
     protected MatchmakingState matchmakingState = MatchmakingState.NotJoined;
 
+    public List<Card> hand = new List<Card>();
+    public int mulligansRemaining = 0;
+
     private WebSocket ws = null!;
 
     public Client() {
@@ -30,7 +33,7 @@ public class Client {
 
         state = ClientState.Connecting;
         OnConnecting();
-        ws.ConnectAsync();
+        ws.Connect();
     }
 
     public void Send(C2SMessage message) {
@@ -71,7 +74,15 @@ public class Client {
                 OnMatchmakingStateChanged(matchmakingState);
                 break;
             case S2CGameStarted gameStarted:
+                hand = gameStarted.initialHand;
+                mulligansRemaining = GameRules.MaxMulliganCount;
                 OnGameStarted();
+                break;
+            case S2CMulliganResult mulliganResult:
+                HandleMulliganResult(mulliganResult);
+                break;
+            case S2CMulliganDone mulliganDone:
+                OnMulliganDone();
                 break;
         }
     }
@@ -121,5 +132,15 @@ public class Client {
         OnError("Got exception " + e.Message);
     }
 
+    protected virtual void HandleMulliganResult(S2CMulliganResult mulliganResult) {
+        if (mulliganResult.playerIndex == 0) { // This client's card
+            hand[mulliganResult.indexInHand] = new Card(CardDatabase.CardPrototypes[mulliganResult.newCardId]);
+            mulligansRemaining--;
+        }
+    }
+
+    protected virtual void OnMulliganDone() {
+        // This can be overridden by CLIClient to log the event
+    }
 }
 

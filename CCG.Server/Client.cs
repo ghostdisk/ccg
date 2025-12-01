@@ -29,6 +29,12 @@ internal class Client {
                 SendMessage(new S2CMatchmakingState { state = MatchmakingState.NotJoined });
                 break;
             }
+            case C2SMulliganSwap mulliganSwap:
+            case C2SDoneWithMulligan doneWithMulligan:
+                if (player != null) {
+                    player.HandleMessage(message);
+                }
+                break;
         }
     }
 
