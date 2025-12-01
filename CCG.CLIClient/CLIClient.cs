@@ -36,18 +36,30 @@ public class CLIClient : Client {
     }
 
     public void DisplayHand() {
-        Log("Current Hand:");
-        for (int i = 0; i < hand.Count; i++) {
-            Log($"  {i}: {hand[i].card_id}");
+        if (game == null) {
+            Log("Game not started yet.");
+            return;
         }
-        Log($"Mulligans remaining: {mulligansRemaining}");
+        Log("Current Hand:");
+        for (int i = 0; i < game.hand.Count; i++) {
+            Log($"  {i}: {game.hand[i].card_id} ({game.hand[i].prototype.name})");
+        }
+        Log($"Mulligans remaining: {game.mulligansRemaining}");
     }
 
     public void MulliganCard(int index) {
+        if (game == null) {
+            Log("Game not started yet.");
+            return;
+        }
         Send(new C2SMulliganSwap { indexInHand = index });
     }
 
     public void DoneWithMulligan() {
+        if (game == null) {
+            Log("Game not started yet.");
+            return;
+        }
         Send(new C2SDoneWithMulligan());
     }
 

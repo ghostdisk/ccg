@@ -14,8 +14,7 @@ public class Client {
     protected ClientState state = ClientState.NotConnected;
     protected MatchmakingState matchmakingState = MatchmakingState.NotJoined;
 
-    public List<Card> hand = new List<Card>();
-    public int mulligansRemaining = 0;
+    public ClientGame? game;
 
     private WebSocket ws = null!;
 
@@ -74,8 +73,14 @@ public class Client {
                 OnMatchmakingStateChanged(matchmakingState);
                 break;
             case S2CGameStarted gameStarted:
-                hand = gameStarted.initialHand;
-                mulligansRemaining = GameRules.MaxMulliganCount;
+                game = new ClientGame(new ClientPlayer(), new ClientPlayer()); // Assuming ClientPlayer is parameterless
+                game.mulligansRemaining = GameRules.MaxMulliganCount;
+                foreach (int cardId in gameStarted.playerHandCardIds) {
+                    game.hand.Add(game.GetCard(cardId));
+                }
+                foreach (CardInfo cardInfo in gameStarted.localPlayerCardInfos) {
+                    game.RevealCard(cardInfo);
+                }
                 OnGameStarted();
                 break;
             case S2CMulliganResult mulliganResult:
@@ -83,6 +88,11 @@ public class Client {
                 break;
             case S2CMulliganDone mulliganDone:
                 OnMulliganDone();
+                break;
+            case S2CCardInfo cardInfoMessage:
+                foreach (CardInfo cardInfo in cardInfoMessage.cardInfos) {
+                    game?.RevealCard(cardInfo);
+                }
                 break;
         }
     }
@@ -133,9 +143,11 @@ public class Client {
     }
 
     protected virtual void HandleMulliganResult(S2CMulliganResult mulliganResult) {
+        if (game == null) return;
+
         if (mulliganResult.playerIndex == 0) { // This client's card
-            hand[mulliganResult.indexInHand] = new Card(CardDatabase.CardPrototypes[mulliganResult.newCardId]);
-            mulligansRemaining--;
+            game.hand[mulliganResult.indexInHand] = game.GetCard(mulliganResult.newCardId);
+            game.mulligansRemaining--;
         }
     }
 

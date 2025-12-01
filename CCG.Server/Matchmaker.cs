@@ -16,7 +16,7 @@ class Matchmaker {
             Client client1 = queue[0];
             Client client2 = queue[1];
             queue.RemoveAt(0);
-            queue.RemoveAt(1);
+            queue.RemoveAt(0);
             StartGame(client1, client2);
         }
     }

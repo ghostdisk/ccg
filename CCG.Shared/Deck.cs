@@ -5,20 +5,7 @@ public class Deck {
     public List<Card> cards;
 
     public Deck() {
-        cards = new List<Card> {
-            new Card(CardDatabase.CardPrototypes[1]),
-            new Card(CardDatabase.CardPrototypes[1]),
-            new Card(CardDatabase.CardPrototypes[1]),
-            new Card(CardDatabase.CardPrototypes[1]),
-            new Card(CardDatabase.CardPrototypes[2]),
-            new Card(CardDatabase.CardPrototypes[2]),
-            new Card(CardDatabase.CardPrototypes[2]),
-            new Card(CardDatabase.CardPrototypes[2]),
-            new Card(CardDatabase.CardPrototypes[3]),
-            new Card(CardDatabase.CardPrototypes[3]),
-            new Card(CardDatabase.CardPrototypes[3]),
-            new Card(CardDatabase.CardPrototypes[3]),
-        };
+        cards = new List<Card>();
     }
 
     public void Shuffle() {
