@@ -5,6 +5,8 @@ CCG.Client/obj
 CCG.Client/bin
 CCG.Server/obj
 CCG.Server/bin
+CCG.CLIClient/obj
+CCG.CLIClient/bin
 CCGUnity/.vs
 CCGUnity/Library
 CCGUnity/Logs
