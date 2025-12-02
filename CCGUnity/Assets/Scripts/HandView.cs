@@ -12,6 +12,7 @@ class HandView : MonoBehaviour
     public float maxUseSpace = 1.0f;
     public DeckView deckView;
 
+
     void Start() {
         UpdatePositions();
     }
@@ -49,7 +50,7 @@ class HandView : MonoBehaviour
 
             Vector3 forward = spline.EvaluateTangent(t);
             Vector3 up = spline.EvaluateUpVector(t);
-            Vector3 position = transform.TransformPoint(spline.EvaluatePosition(t)) - forward * 0.1f;
+            Vector3 position = transform.TransformPoint(spline.EvaluatePosition(t));
             Quaternion rotation = Quaternion.LookRotation(up, Vector3.Cross(up, forward).normalized) * transform.rotation;
 
             cards[i].SetTarget(position, rotation, new Vector3(1,1,1));
