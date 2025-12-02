@@ -47,7 +47,6 @@ public class UnityClient : Client<UnityClientGame> {
     }
 
     protected override void HandleMessage(S2CMessage message) {
-        Debug.Log(message);
         base.HandleMessage(message);
     }
 
@@ -75,11 +74,13 @@ public class UnityClient : Client<UnityClientGame> {
 };
 
 public class UnityClientGame : ClientGame {
-    private UnityClient client;
+    UnityClient client;
+    GameController GC;
 
     public UnityClientGame(UnityClient client, ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1) : base(myPlayer, player0, player1) {
         this.client = client;
-        Debug.Log("UnityClientGame: Game started");
+        this.GC = client.GC;
+        GC.menuUiRoot.SetActive(false);
     }
 
     public void MulliganCard(int index) {
@@ -108,14 +109,24 @@ public class UnityClientGame : ClientGame {
 
 public class GameController : MonoBehaviour {
     public UnityClient client;
+    public Button matchmakingButton;
+    public ConcurrentQueue<Action> actionQueue;
+    public GameObject fieldPrefab;
+    public GameObject fieldGraphicsRoot;
+
+    [Header("Menu UI")]
+    public GameObject menuUiRoot;
     public TextMeshProUGUI connectionStateText;
     public GameObject matchmakingPanel;
     public TextMeshProUGUI matchmakingText;
     public TextMeshProUGUI matchmakingButtonText;
-    public Button matchmakingButton;
-    public ConcurrentQueue<Action> actionQueue;
+
+    [Header("Board")]
+    public Material myFieldMaterial;
+    public Material opponentFieldMaterial;
 
     void Start() {
+        menuUiRoot.SetActive(true);
         actionQueue = new ConcurrentQueue<Action>();
 
         client = new UnityClient();
@@ -125,6 +136,19 @@ public class GameController : MonoBehaviour {
         matchmakingPanel.SetActive(false);
 
         client.Connect();
+
+        // Create the field
+        for (int x = 0; x < 7; x++) {
+            for (int y = 0; y < 6; y++) {
+                GameObject field = Instantiate(fieldPrefab);
+                field.transform.position = new Vector3(x, 0, y);
+                field.transform.parent = fieldGraphicsRoot.transform;
+                field.name = $"Field {x}:{y}";
+
+                Material material = y < 3 ? myFieldMaterial : opponentFieldMaterial;
+                field.GetComponentInChildren<MeshRenderer>().material = material;
+            }
+        }
     }
 
     void Update() {
