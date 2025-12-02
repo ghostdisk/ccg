@@ -10,11 +10,11 @@ public enum ClientState {
     Connected,
 }
 
-public class Client {
+public abstract class Client<TGame> where TGame : ClientGame {
     protected ClientState state = ClientState.NotConnected;
     protected MatchmakingState matchmakingState = MatchmakingState.NotJoined;
 
-    public ClientGame? game;
+    public TGame? game;
 
     private WebSocket ws = null!;
 
@@ -48,8 +48,7 @@ public class Client {
         }
     }
 
-    public virtual void OnGameStarted() {
-    }
+    protected abstract TGame CreateGame(ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1);
 
     public void LeaveMatchmaking() {
         if (matchmakingState == MatchmakingState.Joined) {
@@ -67,37 +66,33 @@ public class Client {
     }
 
     protected virtual void HandleMessage(S2CMessage message) {
+        if (game != null) {
+            game.HandleMessage(message);
+        }
         switch (message) {
             case S2CMatchmakingState matchmakingStateMessage:
                 matchmakingState = matchmakingStateMessage.state;
                 OnMatchmakingStateChanged(matchmakingState);
                 break;
             case S2CGameStarted gameStarted:
-                game = new ClientGame(new ClientPlayer(), new ClientPlayer());
+                ClientPlayer myPlayer = new ClientPlayer(gameStarted.myPlayerIndex);
+                ClientPlayer opponentPlayer = new ClientPlayer(gameStarted.myPlayerIndex == 0 ? 1 : 0);
 
-                game.player1.mulligansRemaining = gameStarted.myMulligans;
-                game.player2.mulligansRemaining = gameStarted.opponentMulligans;
+                myPlayer.mulligansRemaining = gameStarted.myMulligans;
+                opponentPlayer.mulligansRemaining = gameStarted.opponentMulligans;
+
+                ClientPlayer player0 = gameStarted.myPlayerIndex == 0 ? myPlayer : opponentPlayer;
+                ClientPlayer player1 = gameStarted.myPlayerIndex == 1 ? opponentPlayer : myPlayer;
+                game = CreateGame(myPlayer, player0, player1);
 
                 foreach (int cardId in gameStarted.myHand) {
-                    game.player1.hand.Add(game.GetCard(cardId));
+                    myPlayer.hand.Add(game.GetCard(cardId));
                 }
                 foreach (int cardId in gameStarted.opponentHand) {
-                    game.player2.hand.Add(game.GetCard(cardId));
+                    opponentPlayer.hand.Add(game.GetCard(cardId));
                 }
                 foreach (CardInfo cardInfo in gameStarted.myHandInfos) {
                     game.RevealCard(cardInfo);
-                }
-                OnGameStarted();
-                break;
-            case S2CMulliganResult mulliganResult:
-                HandleMulliganResult(mulliganResult);
-                break;
-            case S2CMulliganDone mulliganDone:
-                OnMulliganDone();
-                break;
-            case S2CCardInfo cardInfoMessage:
-                foreach (CardInfo cardInfo in cardInfoMessage.cardInfos) {
-                    game?.RevealCard(cardInfo);
                 }
                 break;
         }
@@ -114,9 +109,6 @@ public class Client {
     }
 
     protected virtual void OnLostConnection(String reason) {
-    }
-
-    protected virtual void OnMulliganDone() {
     }
 
     private void OnWSOpen(object sender, EventArgs e) {
@@ -149,13 +141,6 @@ public class Client {
 
     private void OnWSError(object sender, ErrorEventArgs e) {
         OnError("Got exception " + e.Message);
-    }
-
-    protected virtual void HandleMulliganResult(S2CMulliganResult mulliganResult) {
-        var player = game!.GetPlayer(mulliganResult.playerIndex);
-
-        player.hand[mulliganResult.indexInHand] = game.GetCard(mulliganResult.newCardId);
-        player.mulligansRemaining--;
     }
 }
 

@@ -9,15 +9,11 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
     public GameState state = GameState.Mulligan;
     private int nextCardId = 1;
 
-    public ServerGame(ServerPlayer player1, ServerPlayer player2) : base(player1, player2) {
+    public ServerGame(ServerPlayer player0, ServerPlayer player1) : base(player0, player1) {
     }
 
     public void Start() {
-        ServerPlayer[] players = { player1, player2 };
-
         foreach (ServerPlayer player in players) {
-            List<CardInfo> handCardInfos = new List<CardInfo>();
-
             player.mulligansRemaining = GameRules.MaxMulliganCount;
             player.deck = new Deck();
 
@@ -31,9 +27,7 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
             for (int i = 0; i < GameRules.InitialHandSize; i++) {
                 Card card = player.deck.Draw()!;
                 player.hand.Add(card);
-                handCardInfos.Add(new CardInfo { cardId = card.card_id, cardPrototypeId = card.prototype.id });
             }
-
         }
 
         foreach (ServerPlayer player in players) {
@@ -41,6 +35,7 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
 
             message.myMulligans = player.mulligansRemaining;
             message.opponentMulligans = player.opponent.mulligansRemaining;
+            message.myPlayerIndex = player.index;
 
             foreach (Card card in player.hand) {
                 message.myHand.Add(card.card_id);
@@ -53,16 +48,16 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
         }
     }
 
-    public void HandleMessage(ServerPlayer player, C2SMessage message) {
+    public bool HandleMessage(ServerPlayer player, C2SMessage message) {
         switch (message) {
             case C2SMulliganSwap mulliganSwap:
                 HandleMulliganSwap(player, mulliganSwap.indexInHand);
-                break;
+                return true;
             case C2SDoneWithMulligan doneWithMulligan:
                 HandleDoneWithMulligan(player);
-                break;
+                return true;
             default:
-                break;
+                return false;
         }
     }
 
@@ -86,21 +81,30 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
         player.deck.cards.Insert(0, oldCard); // Put old card back at the bottom of the deck
         player.mulligansRemaining--;
 
-        player.SendMessage(new S2CMulliganResult {
-            playerIndex = 0,
-            indexInHand = indexInHand,
-            newCardId = newCard.card_id
-        });
-        player.opponent.SendMessage(new S2CMulliganResult {
-            playerIndex = 1,
+
+        SendToAll(new S2CMulliganResult {
+            player = player.index,
             indexInHand = indexInHand,
             newCardId = newCard.card_id,
+            mulligansRemaining = player.mulligansRemaining,
         });
+
         player.SendMessage(new S2CCardInfo {
             cardInfos = new List<CardInfo> {
                 new CardInfo { cardId = newCard.card_id, cardPrototypeId = newCard.prototype.id }
             }
         });
+
+        if (player.mulligansRemaining == 0 && player.opponent.mulligansRemaining == 0) {
+            CheckForMulliganEnd();
+        }
+    }
+
+    private void CheckForMulliganEnd() {
+        if (players.All((player) => player.mulligansRemaining == 0)) {
+            state = GameState.Playing;
+            SendToAll(new S2CMulliganDone());
+        }
     }
 
     private void HandleDoneWithMulligan(ServerPlayer player) {
@@ -108,17 +112,17 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
             player.SendMessage(new S2CErrorNotify { message = "Not in mulligan phase." });
             return;
         }
-        player.mulligansRemaining = 0; // Player is done with mulligan
-
-        if (player1.mulligansRemaining == 0 && player2.mulligansRemaining == 0) {
-            state = GameState.Playing; // Transition to playing phase
-            SendToAll(new S2CMulliganDone());
+        if (player.mulligansRemaining > 0) {
+            player.mulligansRemaining = 0;
+            SendToAll(new S2CDoneWithMulliganResult { player = player.index });
+            CheckForMulliganEnd();
         }
     }
 
     public void SendToAll(S2CMessage message) {
-        player1.SendMessage(message);
-        player2.SendMessage(message);
+        foreach (ServerPlayer player in players) {
+            player.SendMessage(message);
+        }
     }
 
     private Card CreateCard(CardPrototype prototype) {

@@ -15,8 +15,8 @@ internal class Client {
     }
 
     public void HandleMessage(C2SMessage message) {
-        if (player != null) {
-            player.HandleMessage(message);
+        if (player != null && player.game.HandleMessage(player, message)) {
+            return;
         }
         switch (message) {
             case C2SJoinMatchmaking join: {
@@ -29,12 +29,6 @@ internal class Client {
                 SendMessage(new S2CMatchmakingState { state = MatchmakingState.NotJoined });
                 break;
             }
-            case C2SMulliganSwap mulliganSwap:
-            case C2SDoneWithMulligan doneWithMulligan:
-                if (player != null) {
-                    player.HandleMessage(message);
-                }
-                break;
         }
     }
 

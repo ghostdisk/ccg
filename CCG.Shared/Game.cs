@@ -5,24 +5,21 @@ public class Game<TPlayer, TGame>
    where TPlayer : Player<TPlayer, TGame>
    where TGame : Game<TPlayer, TGame> {
 
-    public TPlayer player1;
-    public TPlayer player2;
+    public TPlayer[] players;
 
-    public Game(TPlayer player1, TPlayer player2) {
+    public Game(TPlayer player0, TPlayer player1) {
         Deck deck1 = new Deck();
         Deck deck2 = new Deck();
+        players = new TPlayer[] { player0, player1 };
 
-        this.player1 = player1;
-        this.player2 = player2;
-
+        player0.game = (TGame)this;
         player1.game = (TGame)this;
-        player2.game = (TGame)this;
 
-        player1.opponent = player2;
-        player2.opponent = player1;
+        player0.opponent = player1;
+        player1.opponent = player0;
     }
 
     public TPlayer GetPlayer(int index) {
-        return index > 0 ? player2 : player1;
+        return players[index];
     }
 }

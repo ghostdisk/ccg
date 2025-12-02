@@ -8,6 +8,7 @@ using MessagePack;
 [Union(4, typeof(S2CMulliganResult))]
 [Union(5, typeof(S2CMulliganDone))]
 [Union(6, typeof(S2CCardInfo))]
+[Union(7, typeof(S2CDoneWithMulliganResult))]
 public abstract class S2CMessage {
 }
 
@@ -24,6 +25,7 @@ public class S2CGameStarted : S2CMessage {
     [Key(2)] public int myMulligans = 0;
     [Key(3)] public int opponentMulligans = 0;
     [Key(4)] public List<CardInfo> myHandInfos = new();
+    [Key(5)] public int myPlayerIndex = 0;
 }
 
 [MessagePackObject]
@@ -35,11 +37,19 @@ public class S2CMatchmakingState : S2CMessage {
 [MessagePackObject]
 public class S2CMulliganResult : S2CMessage {
     [Key(0)]
-    public int playerIndex;
+    public int player;
     [Key(1)]
     public int indexInHand;
     [Key(2)]
     public int newCardId;
+    [Key(3)]
+    public int mulligansRemaining;
+}
+
+[MessagePackObject]
+public class S2CDoneWithMulliganResult : S2CMessage {
+    [Key(0)]
+    public int player;
 }
 
 [MessagePackObject]

@@ -25,11 +25,11 @@ class Matchmaker {
         queue.Remove(client);
     }
 
-    void StartGame(Client client1, Client client2) {
-        ServerPlayer player1 = new ServerPlayer(client1);
-        ServerPlayer player2 = new ServerPlayer(client2);
+    void StartGame(Client client0, Client client1) {
+        ServerPlayer player0 = new ServerPlayer(client0, 0);
+        ServerPlayer player1 = new ServerPlayer(client1, 1);
 
-        ServerGame game = new ServerGame(player1, player2);
+        ServerGame game = new ServerGame(player0, player1);
         game.Start();
     }
 }

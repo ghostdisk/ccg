@@ -7,9 +7,11 @@ public class Player<TPlayer, TGame>
     public TGame game = null!;
     public Deck deck = null!;
     public TPlayer opponent = null!;
+    public int index;
     public int mulligansRemaining = 0;
     public List<Card> hand = new List<Card>();
 
-    public Player() {
+    public Player(int index) {
+        this.index = index;
     }
 }

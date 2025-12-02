@@ -9,6 +9,7 @@ public class Deck {
     }
 
     public void Shuffle() {
+        Console.WriteLine("Shuffle() not implemented TODO");
     }
 
     public Card? Draw() {
