@@ -5,6 +5,10 @@ using TMPro;
 using System.Collections.Concurrent;
 using System;
 using UnityEngine.UI;
+using System.Collections.Generic; // Added for Dictionary
+#if UNITY_EDITOR
+using UnityEditor; // Added for editor functionality
+#endif
 
 public class UnityClient : Client<UnityClientGame> {
     public GameController GC;
@@ -113,6 +117,7 @@ public class GameController : MonoBehaviour {
     public ConcurrentQueue<Action> actionQueue;
     public GameObject fieldPrefab;
     public GameObject fieldGraphicsRoot;
+    public Dictionary<Vector2Int, Field> fields; // Added for field storage
 
     [Header("Menu UI")]
     public GameObject menuUiRoot;
@@ -137,19 +142,42 @@ public class GameController : MonoBehaviour {
 
         client.Connect();
 
+        fields = new Dictionary<Vector2Int, Field>();
+        foreach (Field field in fieldGraphicsRoot.GetComponentsInChildren<Field>()) {
+            fields.Add(new Vector2Int(field.x, field.y), field);
+        }
+    }
+
+#if UNITY_EDITOR
+    [ContextMenu("Init Board")]
+    public void InitBoard() {
+        // Clear existing fields
+        while (fieldGraphicsRoot.transform.childCount > 0) {
+            DestroyImmediate(fieldGraphicsRoot.transform.GetChild(0).gameObject);
+        }
+
         // Create the field
         for (int x = 0; x < 7; x++) {
             for (int y = 0; y < 6; y++) {
-                GameObject field = Instantiate(fieldPrefab);
-                field.transform.position = new Vector3(x, 0, y);
-                field.transform.parent = fieldGraphicsRoot.transform;
-                field.name = $"Field {x}:{y}";
+                GameObject fieldGO = Instantiate(fieldPrefab);
+                fieldGO.transform.position = new Vector3(x, 0, y);
+                fieldGO.transform.parent = fieldGraphicsRoot.transform;
+                fieldGO.name = $"Field {x}:{y}";
 
                 Material material = y < 3 ? myFieldMaterial : opponentFieldMaterial;
-                field.GetComponentInChildren<MeshRenderer>().material = material;
+                fieldGO.GetComponentInChildren<MeshRenderer>().material = material;
+
+                Field fieldComponent = fieldGO.GetComponent<Field>();
+                if (fieldComponent == null) {
+                    Debug.LogError($"Field component not found on prefab for field {x}:{y}. Please add a Field component to the fieldPrefab.");
+                } else {
+                    fieldComponent.x = x;
+                    fieldComponent.y = y;
+                }
             }
         }
     }
+#endif
 
     void Update() {
         Action action;
