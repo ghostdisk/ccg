@@ -1,32 +1,37 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
+using System.Linq;
 
 class MulliganView : MonoBehaviour {
     public List<Transform> positions;
     public ParticleSystem fog;
     public GameObject ui;
 
-    [NonSerialized] public List<CardView> cards;
-    HandView hand;
+    [NonSerialized] public List<CardView>? cards;
 
-
-    public void Activate(List<CardView> cards) {
+    public async Task Activate(List<CardView> cards) {
         if (cards.Count > positions.Count) {
             Debug.LogError("There are more cards in hand than mulligan positions set up.\n");
         }
         this.cards = cards;
 
-        for (var i = 0; i < Math.Min(cards.Count, positions.Count); i++) {
-            cards[i].SetTarget(new TransformProps(positions[i]));
-        }
         fog.Play();
+
+        await Task.WhenAll(cards.Select(async (card, index) => {
+            await Task.Delay(index * 75);
+            card.SetTarget(new TransformProps(positions[index]));
+        }).ToArray());
 
         ui.SetActive(true);
     }
 
-    public void Deactivate() {
+    public List<CardView> Deactivate() {
         ui.SetActive(false);
         fog.Stop();
+        List<CardView> allCards = cards;
+        cards = null;
+        return cards;
     }
 }

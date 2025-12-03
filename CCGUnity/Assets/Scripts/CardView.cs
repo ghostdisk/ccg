@@ -2,8 +2,18 @@
 
 class CardView : MonoBehaviour {
     public float speed = 10.0f;
+    public UnityCard card;
 
     TransformProps target;
+    MeshRenderer meshRenderer;
+
+    void Awake() {
+        meshRenderer = GetComponentInChildren<MeshRenderer>();
+    }
+
+    void Update() {
+        Move(Time.deltaTime * speed);
+    }
 
     public void SetTarget(TransformProps props) {
         target = props;
@@ -13,8 +23,8 @@ class CardView : MonoBehaviour {
         Move(1);
     }
 
-    void Update() {
-        Move(Time.deltaTime * speed);
+    public void ToggleShadowCast(bool cast) {
+        meshRenderer.shadowCastingMode = cast ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
     }
 
     void Move(float t) {

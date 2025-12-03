@@ -40,9 +40,18 @@ class UnityClientGame : ClientGame {
         Debug.Log($"UnityClientGame: [Mulligan] p{doneWithMulliganResult.player} done with mulligan.");
     }
 
+    protected override void S2CGameStartedHandler(S2CGameStarted gameStarted) {
+        base.S2CGameStartedHandler(gameStarted);
+        Animate(async () => {
+            List<CardView> hand = GC.myViews.hand.RemoveAllCards();
+            await GC.mulliganView.Activate(hand);
+        });
+    }
+
     protected override Card CreateCard(CardPrototype proto, int cardId) {
         UnityCard card = new UnityCard(proto, cardId);
         card.view = UnityEngine.Object.Instantiate(GC.cardViewPrefab);
+        card.view.card = card;
         return card;
     }
 
@@ -56,7 +65,7 @@ class UnityClientGame : ClientGame {
             card.view.SetTarget(views.deck.GetTransformProps());
             card.view.JumpToTarget();
 
-            views.hand.cards.Add(card.view);
+            views.hand.AddCard(card.view);
             views.hand.UpdateCardsPositions();
 
             await Task.Delay(175);

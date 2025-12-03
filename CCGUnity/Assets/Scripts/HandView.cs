@@ -1,16 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
+using CCG.Shared;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 class HandView : MonoBehaviour {
 
-    [NonSerialized] public List<CardView> cards = new();
+    private List<CardView> cards = new();
 
     [SerializeField] private SplineContainer splineContainer;
     [SerializeField] private List<float> spacings;
     [SerializeField] private List<float> cardRotation;
     [SerializeField] private float maxUseSpace = 1.0f;
+    [SerializeField] private bool isOpponentHand = false;
+
+    public void AddCard(CardView card) {
+        cards.Add(card);
+        UpdateCardsPositions();
+        card.ToggleShadowCast(!isOpponentHand);
+    }
+
+    public List<CardView> RemoveAllCards() {
+        List<CardView> allCards = cards;
+        cards = new List<CardView>();
+        return allCards;
+    }
 
     public TransformProps[] GetCardTransformProps() {
         TransformProps[] props = new TransformProps[cards.Count];
@@ -50,3 +67,20 @@ class HandView : MonoBehaviour {
         }
     }
 }
+
+#if UNITY_EDITOR
+[CustomEditor(typeof(HandView))]
+public class HandViewEditor : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        DrawDefaultInspector();
+
+        HandView handView = (HandView)target;
+        if (GUILayout.Button("Update Card Positions"))
+        {
+            handView.UpdateCardsPositions();
+        }
+    }
+}
+#endif
