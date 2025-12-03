@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3422611170032749398}
   - component: {fileID: 176552211321034213}
   - component: {fileID: 1325199919470375556}
+  - component: {fileID: 8821933436802342009}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -90,6 +91,27 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1426682739076927177}
   m_Mesh: {fileID: 659470590794405116, guid: da5a5496479f5d745a3d930189fd8320, type: 3}
+--- !u!65 &8821933436802342009
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1426682739076927177}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7230701, y: 0.99159265, z: 0.011974067}
+  m_Center: {x: -0.0011589533, y: 0.000026090174, z: 0.007401649}
 --- !u!1 &1475704310764159066
 GameObject:
   m_ObjectHideFlags: 0
@@ -100,6 +122,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7975909493538200713}
   - component: {fileID: 5397101469741479652}
+  - component: {fileID: 4539373799279809985}
   m_Layer: 0
   m_Name: Card View
   m_TagString: Untagged
@@ -136,3 +159,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardView
   speed: 10
+  hoverSpeed: 18
+  child: {fileID: 3422611170032749398}
+  meshRenderer: {fileID: 176552211321034213}
+  emissionColor: {r: 0, g: 0.7436116, b: 1, a: 1}
+  emissionStrength: 2
+--- !u!54 &4539373799279809985
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1475704310764159066}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

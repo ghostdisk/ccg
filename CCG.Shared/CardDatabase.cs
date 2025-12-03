@@ -25,6 +25,12 @@ public static class CardDatabase {
             name = "Card3",
             description = "Banger card 3",
         },
+        new CardPrototype {
+            id = 4,
+            initial_strength = 10,
+            name = "Card4",
+            description = "Banger card 4",
+        },
     };
 
     public static CardPrototype NullPrototype => CardPrototypes[0];

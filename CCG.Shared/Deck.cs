@@ -8,8 +8,15 @@ public class Deck {
         cards = new List<Card>();
     }
 
-    public void Shuffle() {
-        Console.WriteLine("Shuffle() not implemented TODO");
+    public void Shuffle(Random rng) {
+        int n = cards.Count;
+        while (n > 1) {
+            int k = rng.Next(n);
+            n--;
+            Card temp = cards[n];
+            cards[n] = cards[k];
+            cards[k] = temp;
+        }
     }
 
     public Card? Draw() {

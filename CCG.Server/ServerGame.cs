@@ -8,8 +8,10 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
 
     public GameState state = GameState.Mulligan;
     private int nextCardId = 1;
+    Random rng;
 
     public ServerGame(ServerPlayer player0, ServerPlayer player1) : base(player0, player1) {
+        rng = new Random(Guid.NewGuid().GetHashCode());
     }
 
     public void Start() {
@@ -17,12 +19,13 @@ internal class ServerGame : Game<ServerPlayer,ServerGame> {
             player.mulligansRemaining = GameRules.MaxMulliganCount;
             player.deck = new Deck();
 
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 7; i++) {
                 player.deck.cards.Add(CreateCard(CardDatabase.CardPrototypes[1]));
                 player.deck.cards.Add(CreateCard(CardDatabase.CardPrototypes[2]));
                 player.deck.cards.Add(CreateCard(CardDatabase.CardPrototypes[3]));
+                player.deck.cards.Add(CreateCard(CardDatabase.CardPrototypes[4]));
             }
-            player.deck.Shuffle();
+            player.deck.Shuffle(rng);
 
             for (int i = 0; i < GameRules.InitialHandSize; i++) {
                 Card card = player.deck.Draw()!;

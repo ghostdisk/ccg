@@ -5,11 +5,16 @@ using System.Threading.Tasks;
 using System.Linq;
 
 class MulliganView : MonoBehaviour {
-    public List<Transform> positions;
-    public ParticleSystem fog;
-    public GameObject ui;
+    [NonSerialized] public List<CardView> cards;
 
-    [NonSerialized] public List<CardView>? cards;
+    [SerializeField] private List<Transform> positions;
+    [SerializeField] private ParticleSystem fog;
+    [SerializeField] private GameObject ui;
+    [SerializeField] private Transform firstDiscardPosition;
+    [SerializeField] private float discardClimbPerCard = 0.2f;
+    [SerializeField] private float discardRandomRotation = 45.0f;
+
+    private float discardY = 0;
 
     public async Task Activate(List<CardView> cards) {
         if (cards.Count > positions.Count) {
@@ -33,5 +38,13 @@ class MulliganView : MonoBehaviour {
         List<CardView> allCards = cards;
         cards = null;
         return cards;
+    }
+
+    public TransformProps GetNextDiscardTransformProps() {
+        TransformProps props = new TransformProps(firstDiscardPosition);
+        props.position.y += discardY;
+        props.rotation = Quaternion.Euler(0, UnityEngine.Random.Range(-discardRandomRotation / 2.0f, discardRandomRotation / 2.0f), 0);
+        discardY += discardClimbPerCard;
+        return props;
     }
 }

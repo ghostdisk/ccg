@@ -45,12 +45,24 @@ class UnityClientGame : ClientGame {
         Animate(async () => {
             List<CardView> hand = GC.myViews.hand.RemoveAllCards();
             await GC.mulliganView.Activate(hand);
+
+            for (int indexInHand = 0; indexInHand < hand.Count; indexInHand++) {
+                CardView card = hand[indexInHand];
+                card.Interactive = true;
+                card.onClick = () => {
+                    card.SetTarget(GC.mulliganView.GetNextDiscardTransformProps());
+                    client.Send(new C2SMulliganSwap {
+                        indexInHand = indexInHand,
+                    });
+                };
+            }
         });
     }
 
     protected override Card CreateCard(CardPrototype proto, int cardId) {
         UnityCard card = new UnityCard(proto, cardId);
         card.view = UnityEngine.Object.Instantiate(GC.cardViewPrefab);
+        card.view.gameObject.SetActive(false);
         card.view.card = card;
         return card;
     }
@@ -64,6 +76,7 @@ class UnityClientGame : ClientGame {
 
             card.view.SetTarget(views.deck.GetTransformProps());
             card.view.JumpToTarget();
+            card.view.gameObject.SetActive(true);
 
             views.hand.AddCard(card.view);
             views.hand.UpdateCardsPositions();
