@@ -2,10 +2,14 @@
 using CCG.Shared;
 using CCG.Client;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System;
 
 class UnityClientGame : ClientGame {
     private GameController GC;
     private UnityClient client;
+    private Queue<Func<Task>> animationTimeline = new Queue<Func<Task>>();
+    bool areAnimationsRunning = false;
 
     public UnityClientGame(UnityClient client, ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1) : base(myPlayer, player0, player1) {
         this.client = client;
@@ -38,19 +42,41 @@ class UnityClientGame : ClientGame {
 
     protected override Card CreateCard(CardPrototype proto, int cardId) {
         UnityCard card = new UnityCard(proto, cardId);
-        card.view = Object.Instantiate(GC.cardViewPrefab);
+        card.view = UnityEngine.Object.Instantiate(GC.cardViewPrefab);
         return card;
     }
 
     protected override void DrawCard(ClientPlayer player, Card _card) {
-        PlayerViews views = GC.GetPlayerViews(player);
-        UnityCard card = (UnityCard)_card;
+        base.DrawCard(player, _card);
 
-        card.view.SetTarget(views.deck.GetTransformProps());
-        card.view.JumpToTarget();
+        Animate(async () => {
+            PlayerViews views = GC.GetPlayerViews(player);
+            UnityCard card = (UnityCard)_card;
 
-        views.hand.cards.Add(card.view);
-        views.hand.UpdateCardsPositions();
+            card.view.SetTarget(views.deck.GetTransformProps());
+            card.view.JumpToTarget();
+
+            views.hand.cards.Add(card.view);
+            views.hand.UpdateCardsPositions();
+
+            await Task.Delay(175);
+        });
+    }
+
+    public void Animate(Func<Task> func) {
+        animationTimeline.Enqueue(func);
+        if (!areAnimationsRunning) {
+            _ = ProcessAnimationQueueAsync();
+        }
+    }
+
+    async Task ProcessAnimationQueueAsync() {
+        areAnimationsRunning = true;
+        Func<Task> func;
+        while (animationTimeline.TryDequeue(out func)) {
+            await func();
+        }
+        areAnimationsRunning = false;
     }
 }
 
