@@ -220,11 +220,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a522add53977a204bbe4347b8ee8b963, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a522add53977a204bbe4347b8ee8b963, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.15759721
+      value: 0.21
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: a522add53977a204bbe4347b8ee8b963, type: 3}
       propertyPath: m_LocalRotation.w
@@ -972,65 +972,65 @@ MonoBehaviour:
   - m_EditModeType: 1
     m_Knots:
     - Position:
-        x: 0.72
-        y: 0.18227887
-        z: 0.008632004
+        x: -2
+        y: 0
+        z: 0
       TangentIn:
-        x: 0.058076058
-        y: -0.00000008128005
-        z: -0.10403546
+        x: 0
+        y: 0
+        z: 0
       TangentOut:
         x: 0
         y: 0
         z: 0
       Rotation:
         value:
-          x: 0.63458604
-          y: -0.18783933
-          z: -0.019095114
-          w: 0.74943477
+          x: 0.38063067
+          y: 0.4458464
+          z: 0.4628327
+          w: 0.6649265
     - Position:
-        x: 3
-        y: -0.36160707
-        z: 0.34792155
+        x: 0
+        y: -0.40700006
+        z: 0.21700001
       TangentIn:
         x: 0
         y: 0
-        z: -1.33203
+        z: -1.5680003
       TangentOut:
         x: 0
         y: 0
-        z: 1.33203
+        z: 1.5680003
       Rotation:
         value:
-          x: 0.49999994
-          y: 0.49999994
-          z: 0.5
-          w: 0.5000001
+          x: 0.50302696
+          y: 0.50108445
+          z: 0.4988268
+          w: 0.49704137
     - Position:
-        x: 5.481
-        y: 0.044950962
-        z: -0.045600355
+        x: 2.065
+        y: -0.042000055
+        z: -0.031000018
       TangentIn:
         x: 0
         y: 0
-        z: -0.30616966
+        z: 0
       TangentOut:
         x: 0
         y: 0
-        z: 0.30616966
+        z: 0
       Rotation:
         value:
-          x: 0.3451683
-          y: 0.7491111
-          z: 0.44381836
-          w: 0.3503094
+          x: 0.6240634
+          y: 0.6033288
+          z: 0.38373578
+          w: 0.31509715
     m_MetaData:
-    - Mode: 4
+    - Mode: 1
       Tension: 0.5
     - Mode: 2
       Tension: 0.5
-    - Mode: 3
+    - Mode: 1
       Tension: 0.5
     m_Closed: 0
     m_IntData:
@@ -1051,8 +1051,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 881368769}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.09493938, y: -0, z: -0, w: 0.9954831}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3, y: 2.388, z: -0.56}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1671,14 +1671,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1776739953}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.05785411, y: 0, z: 0, w: 0.9983251}
-  m_LocalPosition: {x: 0, y: 2.633, z: -0.641}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 881368771}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: -10.896, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1776739955
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1696,14 +1696,22 @@ MonoBehaviour:
   spacings:
   - 0
   - 0
-  - 0.13
+  - 0.18
+  - 0.17
+  - 0.16
+  - 0.15
+  - 0.14
   - 0.13
   - 0.12
   - 0.11
   - 0.1
-  - 0.09
-  - 0.085
-  maxUseSpace: 0.7
+  cardRotation:
+  - 0
+  - 5
+  - 7
+  - 10
+  - 15
+  maxUseSpace: 1
   deckView: {fileID: 328046164}
 --- !u!4 &1964602100 stripped
 Transform:
