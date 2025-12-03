@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System;
 using UnityEngine.UI;
 using CCG.Client;
@@ -13,7 +14,6 @@ class PlayerViews {
 
 class GameController : MonoBehaviour {
     public UnityClient client;
-    public Button matchmakingButton;
     public ConcurrentQueue<Action> actionQueue;
 
     [Header("Prefabs")]
@@ -30,6 +30,9 @@ class GameController : MonoBehaviour {
     public GameObject matchmakingPanel;
     public TextMeshProUGUI matchmakingText;
     public TextMeshProUGUI matchmakingButtonText;
+    public Button matchmakingButton;
+
+    public List<GameObject> disableWhenInactive = new();
 
     void Start() {
         menuUiRoot.SetActive(true);
