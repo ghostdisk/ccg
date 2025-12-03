@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
 using CCG.Shared;
 using CCG.Client;
+using System.Threading.Tasks;
 
-public class UnityClientGame : ClientGame {
-    UnityClient client;
-    GameController GC;
+class UnityClientGame : ClientGame {
+    private GameController GC;
+    private UnityClient client;
 
     public UnityClientGame(UnityClient client, ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1) : base(myPlayer, player0, player1) {
         this.client = client;
@@ -33,6 +34,23 @@ public class UnityClientGame : ClientGame {
 
     protected override void S2CDoneWithMulliganResultHandler(S2CDoneWithMulliganResult doneWithMulliganResult) {
         Debug.Log($"UnityClientGame: [Mulligan] p{doneWithMulliganResult.player} done with mulligan.");
+    }
+
+    protected override Card CreateCard(CardPrototype proto, int cardId) {
+        UnityCard card = new UnityCard(proto, cardId);
+        card.view = Object.Instantiate(GC.cardViewPrefab);
+        return card;
+    }
+
+    protected override void DrawCard(ClientPlayer player, Card _card) {
+        PlayerViews views = GC.GetPlayerViews(player);
+        UnityCard card = (UnityCard)_card;
+
+        card.view.SetTarget(views.deck.GetTransformProps());
+        card.view.JumpToTarget();
+
+        views.hand.cards.Add(card.view);
+        views.hand.UpdateCardsPositions();
     }
 }
 

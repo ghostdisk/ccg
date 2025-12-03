@@ -2,17 +2,9 @@
 
 class DeckView : MonoBehaviour {
 
-    public Transform deckTransform;
+    [SerializeField] private Transform deckTransform;
 
-    public CardView cardViewPrefab;
-
-    public CardView CreateCardView() {
-        CardView card = Instantiate(cardViewPrefab);
-
-        card.SetTarget(deckTransform.position, Quaternion.Euler(0, 0, -180), deckTransform.localScale);
-        card.JumpToTarget();
-
-        return card;
+    public TransformProps GetTransformProps() {
+        return new TransformProps(deckTransform.position, Quaternion.Euler(0, 0, -180), deckTransform.localScale);
     }
-
 }

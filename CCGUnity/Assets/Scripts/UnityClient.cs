@@ -3,7 +3,7 @@ using UnityEngine;
 using CCG.Shared;
 using CCG.Client;
 
-public class UnityClient : Client<UnityClientGame> {
+class UnityClient : Client<UnityClientGame> {
     public GameController GC;
 
     protected override void ExecOnMainThread(Action action) {

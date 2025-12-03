@@ -26,4 +26,6 @@ public static class CardDatabase {
             description = "Banger card 3",
         },
     };
+
+    public static CardPrototype NullPrototype => CardPrototypes[0];
 }

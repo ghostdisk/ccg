@@ -3,13 +3,26 @@ using TMPro;
 using System.Collections.Concurrent;
 using System;
 using UnityEngine.UI;
+using CCG.Client;
 
-public class GameController : MonoBehaviour {
+[Serializable]
+class PlayerViews {
+    public HandView hand;
+    public DeckView deck;
+};
+
+class GameController : MonoBehaviour {
     public UnityClient client;
     public Button matchmakingButton;
     public ConcurrentQueue<Action> actionQueue;
-    public GameObject fieldPrefab;
-    public GameObject fieldGraphicsRoot;
+
+    [Header("Prefabs")]
+    public CardView cardViewPrefab;
+
+    [Header("Global Views")]
+    public PlayerViews myViews;
+    public PlayerViews opponentViews;
+    public MulliganView mulliganView;
 
     [Header("Menu UI")]
     public GameObject menuUiRoot;
@@ -40,5 +53,9 @@ public class GameController : MonoBehaviour {
 
     public void OnMatchmakingButtonPress() {
         client.OnMatchmakingButtonPress();
+    }
+
+    public PlayerViews GetPlayerViews(ClientPlayer player) {
+        return player == client.game.myPlayer ? myViews : opponentViews;
     }
 }

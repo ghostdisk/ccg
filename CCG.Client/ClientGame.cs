@@ -14,15 +14,19 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
         this.opponentPlayer = myPlayer.opponent;
     }
 
+    protected virtual Card CreateCard(CardPrototype proto, int cardId) {
+        return new Card(proto, cardId);
+    }
+
     public Card GetCard(int cardId) {
         if (!knownCards.TryGetValue(cardId, out Card? card)) {
-            card = new Card(CardDatabase.CardPrototypes[0], cardId); // Null Card
+            card = CreateCard(CardDatabase.NullPrototype, cardId);
             knownCards.Add(cardId, card);
         }
         return card;
     }
 
-    public void RevealCard(CardInfo cardInfo) {
+    public virtual void RevealCard(CardInfo cardInfo) {
         Card card = GetCard(cardInfo.cardId);
         card.prototype = CardDatabase.CardPrototypes[cardInfo.cardPrototypeId];
         card.strength = card.prototype.initial_strength;
@@ -39,11 +43,30 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
             case S2CDoneWithMulliganResult doneWithMulliganResult:
                 S2CDoneWithMulliganResultHandler(doneWithMulliganResult);
                 break;
+            case S2CGameStarted gameStarted:
+                S2CGameStartedHandler(gameStarted);
+                break;
             case S2CCardInfo cardInfoMessage:
                 foreach (CardInfo cardInfo in cardInfoMessage.cardInfos) {
                     RevealCard(cardInfo);
                 }
                 break;
+        }
+    }
+
+    protected virtual void DrawCard(ClientPlayer player, Card card) {
+        player.hand.Add(card);
+    }
+
+    protected virtual void S2CGameStartedHandler(S2CGameStarted gameStarted) {
+        foreach (CardInfo cardInfo in gameStarted.myHandInfos) {
+            RevealCard(cardInfo);
+        }
+        foreach (int cardId in gameStarted.myHand) {
+            DrawCard(myPlayer, GetCard(cardId));
+        }
+        foreach (int cardId in gameStarted.opponentHand) {
+            DrawCard(opponentPlayer, GetCard(cardId));
         }
     }
 

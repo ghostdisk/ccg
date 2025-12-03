@@ -82,18 +82,11 @@ public abstract class Client<TGame> where TGame : ClientGame {
                 opponentPlayer.mulligansRemaining = gameStarted.opponentMulligans;
 
                 ClientPlayer player0 = gameStarted.myPlayerIndex == 0 ? myPlayer : opponentPlayer;
-                ClientPlayer player1 = gameStarted.myPlayerIndex == 1 ? opponentPlayer : myPlayer;
+                ClientPlayer player1 = gameStarted.myPlayerIndex == 0 ? opponentPlayer : myPlayer;
                 game = CreateGame(myPlayer, player0, player1);
 
-                foreach (int cardId in gameStarted.myHand) {
-                    myPlayer.hand.Add(game.GetCard(cardId));
-                }
-                foreach (int cardId in gameStarted.opponentHand) {
-                    opponentPlayer.hand.Add(game.GetCard(cardId));
-                }
-                foreach (CardInfo cardInfo in gameStarted.myHandInfos) {
-                    game.RevealCard(cardInfo);
-                }
+                game.HandleMessage(gameStarted);
+
                 break;
         }
     }
