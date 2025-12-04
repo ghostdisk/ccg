@@ -6,12 +6,12 @@ using UnityEngine.UI;
 using CCG.Client;
 
 [Serializable]
-class PlayerViews {
+public class PlayerViews {
     public HandView hand;
     public DeckView deck;
 };
 
-class GameView : MonoBehaviour {
+public class GameView : MonoBehaviour {
     public UnityClient client;
 
     [Header("Prefabs")]

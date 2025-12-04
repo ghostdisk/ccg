@@ -7,7 +7,7 @@ using CCG.Shared;
 using UnityEditor;
 #endif
 
-class HandView : MonoBehaviour {
+public class HandView : MonoBehaviour {
 
     private List<CardView> cards = new();
 
@@ -70,15 +70,12 @@ class HandView : MonoBehaviour {
 
 #if UNITY_EDITOR
 [CustomEditor(typeof(HandView))]
-public class HandViewEditor : Editor
-{
-    public override void OnInspectorGUI()
-    {
+public class HandViewEditor : Editor {
+    public override void OnInspectorGUI() {
         DrawDefaultInspector();
 
         HandView handView = (HandView)target;
-        if (GUILayout.Button("Update Card Positions"))
-        {
+        if (GUILayout.Button("Update Card Positions")) {
             handView.UpdateCardsPositions();
         }
     }

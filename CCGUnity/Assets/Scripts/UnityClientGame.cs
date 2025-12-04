@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 
-class UnityClientGame : ClientGame {
+public class UnityClientGame : ClientGame {
     private GameView G;
     private UnityClient client;
     private Queue<Func<Task>> animationTimeline = new Queue<Func<Task>>();

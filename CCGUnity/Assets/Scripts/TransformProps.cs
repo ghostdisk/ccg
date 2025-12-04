@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-struct TransformProps {
+public struct TransformProps {
     public Vector3 position;
     public Quaternion rotation;
     public Vector3 scale;

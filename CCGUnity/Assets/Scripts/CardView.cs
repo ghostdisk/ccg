@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-class CardView : MonoBehaviour {
+public class CardView : MonoBehaviour {
 
     public UnityCard card;
     public Action onClick;

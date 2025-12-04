@@ -4,10 +4,12 @@ using System;
 using System.Threading.Tasks;
 using System.Linq;
 
-class MulliganView : MonoBehaviour {
-    [NonSerialized] public List<CardView> cards;
+public class MulliganView : MonoBehaviour {
 
-    [SerializeField] private List<Transform> positions;
+    public List<Transform> positions;
+    public CardView cardViewPrefab;
+
+    [NonSerialized] public List<CardView> cards;
     [SerializeField] private ParticleSystem fog;
     [SerializeField] private GameObject ui;
     [SerializeField] private Transform firstDiscardPosition;

@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Linq;
 
-class MultiGameManager : MonoBehaviour {
+public class MultiGameManager : MonoBehaviour {
     [SerializeField] private GameView[] gameViews;
     [SerializeField] private GameObject mainCamera;
 

@@ -1,11 +1,9 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 using CCG.Shared;
 using CCG.Client;
 
-class UnityClient : Client<UnityClientGame> {
+public class UnityClient : Client<UnityClientGame> {
     public GameView G;
-
 
     protected override void OnMatchmakingStateChanged(MatchmakingState matchmakingState) {
         switch (matchmakingState) {

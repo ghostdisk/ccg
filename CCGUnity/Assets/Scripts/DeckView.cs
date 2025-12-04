@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-class DeckView : MonoBehaviour {
+public class DeckView : MonoBehaviour {
 
     [SerializeField] private Transform deckTransform;
 
