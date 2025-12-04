@@ -4,6 +4,7 @@ using CCG.Client;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 public class UnityClientGame : ClientGame {
     private GameView G;
@@ -17,23 +18,41 @@ public class UnityClientGame : ClientGame {
         G.menuUiRoot.SetActive(false);
     }
 
-    public void MulliganCard(int index) {
-        Debug.Log($"UnityClientGame: Mulligan Card at index {index}");
-        client.Send(new C2SMulliganSwap { indexInHand = index });
-    }
-
-    public void DoneWithMulligan() {
-        Debug.Log("UnityClientGame: Done with mulligan");
-        client.Send(new C2SDoneWithMulligan());
-    }
-
     protected override void S2CMulliganResultHandler(S2CMulliganResult mulliganResult) {
         base.S2CMulliganResultHandler(mulliganResult);
-        Debug.Log($"UnityClientGame: [Mulligan] p{mulliganResult.player} swapped {mulliganResult.indexInHand} -> {mulliganResult.newCardId}. {mulliganResult.mulligansRemaining} muls left.");
+        // Debug.Log($"[Mulligan] p{mulliganResult.player} swapped {mulliganResult.indexInHand} -> {mulliganResult.newCardId}. {mulliganResult.mulligansRemaining} muls left.");
+
+        ClientPlayer player = GetPlayer(mulliganResult.player);
+        if (player == myPlayer) {
+            G.mulliganView.SetRemaining(G.mulliganView.mulligansRemaining, mulliganResult.mulligansRemaining);
+
+            Animate(async () => {
+                DeckView deckView = G.GetPlayerViews(player).deck;
+                UnityCard card = (UnityCard)GetCard(mulliganResult.newCardId);
+
+                card.view.SetTarget(deckView.GetTransformProps());
+                card.view.JumpToTarget();
+
+                G.mulliganView.AddReplacedCard(card.view, mulliganResult.indexInHand);
+
+                await Task.Delay(250);
+            });
+        }
     }
 
     protected override void S2CMulliganDoneHandler(S2CMulliganDone mulliganDone) {
-        Debug.Log("UnityClientGame: [Mulligan] Mulligan done.");
+        Animate(async () => {
+            List<CardView> hand = G.mulliganView.Deactivate();
+
+            await Task.WhenAll(hand.Select(async (card, index) => {
+                await Task.Delay(index * 25);
+
+                G.myViews.hand.AddCard(card);
+                G.myViews.hand.UpdateCardsPositions();
+            }).ToArray());
+
+            await Task.Delay(200);
+        });
     }
 
     protected override void S2CDoneWithMulliganResultHandler(S2CDoneWithMulliganResult doneWithMulliganResult) {
@@ -43,20 +62,21 @@ public class UnityClientGame : ClientGame {
     protected override void S2CGameStartedHandler(S2CGameStarted gameStarted) {
         base.S2CGameStartedHandler(gameStarted);
         Animate(async () => {
-            List<CardView> hand = G.myViews.hand.RemoveAllCards();
-            await G.mulliganView.Activate(hand);
+            Action doneAction = () => {
+                client.Send(new C2SDoneWithMulligan());
+                G.mulliganView.SetRemaining(0, 0);
+            };
 
-            for (int i = 0; i < hand.Count; i++) {
-                int indexInHand = i;
-                CardView card = hand[indexInHand];
-                card.Interactive = true;
-                card.onClick = () => {
-                    card.SetTarget(G.mulliganView.GetNextDiscardTransformProps());
-                    client.Send(new C2SMulliganSwap {
-                        indexInHand = indexInHand,
-                    });
-                };
-            }
+            Action<CardView, int> swapCardAction = (CardView card, int indexInHand) => {
+                G.mulliganView.SetRemaining(G.mulliganView.mulligansRemaining - 1, G.mulliganView.confirmedMulligansRemaining);
+
+                client.Send(new C2SMulliganSwap {
+                    indexInHand = indexInHand,
+                });
+            };
+
+            List<CardView> hand = G.myViews.hand.RemoveAllCards();
+            await G.mulliganView.Activate(hand, doneAction, swapCardAction, gameStarted.myMulligans);
         });
     }
 
