@@ -18,6 +18,7 @@ public class CardView : MonoBehaviour {
     private TransformProps childTarget;
 
     private Material material;
+    private Material artMaterial;
     private float currentEmissionStrength = 0.0f;
     private float targetEmissionStrength = 0.0f;
     private bool _isInteractive = false;
@@ -31,13 +32,19 @@ public class CardView : MonoBehaviour {
     }
 
     void Awake() {
-        material = Instantiate(meshRenderer.material);
-        meshRenderer.material = material;
+        material = Instantiate(meshRenderer.materials[0]);
+        artMaterial = Instantiate(meshRenderer.materials[1]);
+        Material[] materials = meshRenderer.materials;
+        materials[0] = material;
+        materials[1] = artMaterial;
+        meshRenderer.materials = materials;
 
         target = new TransformProps(Vector3.zero);
         childTarget = new TransformProps(Vector3.zero, Quaternion.Euler(-90, 0, -180));
 
         Interactive = false;
+
+        OnCardUpdate();
     }
 
     void Update() {
@@ -92,11 +99,16 @@ public class CardView : MonoBehaviour {
         meshRenderer.shadowCastingMode = cast ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
     }
 
+    public void OnCardUpdate() {
+        if (card != null) {
+            artMaterial.SetTexture("_BaseMap", GlobalRefs.Instance.cardArt[card.prototype.id]);
+        }
+    }
+
     void Move(float t) {
         transform.position = Vector3.Lerp(transform.position, target.position, t);
         transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, t);
         transform.localScale = Vector3.Lerp(transform.localScale, target.scale, t);
-
     }
 
 }

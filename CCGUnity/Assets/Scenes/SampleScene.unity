@@ -347,6 +347,7 @@ GameObject:
   m_Component:
   - component: {fileID: 459315405}
   - component: {fileID: 459315406}
+  - component: {fileID: 459315407}
   m_Layer: 0
   m_Name: Multi Game Manager
   m_TagString: Untagged
@@ -385,6 +386,24 @@ MonoBehaviour:
   - {fileID: 690174694}
   - {fileID: 350333625}
   mainCamera: {fileID: 330585543}
+--- !u!114 &459315407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 459315404}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95d7e1dfaaa8f894fb536ec66ef976be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GlobalRefs
+  cardArt:
+  - {fileID: 2800000, guid: 7057cee0ee3ff4448b5dadef4a42e8a2, type: 3}
+  - {fileID: 2800000, guid: c482ca655560f084b8be2bec452b45ff, type: 3}
+  - {fileID: 2800000, guid: e07f03a98500fc94a9e7be7232765991, type: 3}
+  - {fileID: 2800000, guid: e551a75ec76a8fd43b0f60b92a55c136, type: 3}
+  - {fileID: 2800000, guid: 703429fc6987c4c40aa8ee516ff1e30e, type: 3}
 --- !u!114 &690174694 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 732404895486049741, guid: 2e355488cd591174ab4f00f4b4409a33, type: 3}

@@ -121,5 +121,10 @@ public class UnityClientGame : ClientGame {
         }
         areAnimationsRunning = false;
     }
+
+    public override void RevealCard(CardInfo cardInfo) {
+        base.RevealCard(cardInfo);
+        ((UnityCard)GetCard(cardInfo.cardId)).view.OnCardUpdate();
+    }
 }
 

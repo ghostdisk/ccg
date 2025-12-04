@@ -9,15 +9,15 @@ public static class CardDatabase {
         },
         new CardPrototype {
             id = 1,
-            initial_strength = 5,
-            name = "Card1",
-            description = "Banger card 1",
+            initial_strength = 4,
+            name = "Goblin Bomber",
+            description = "BOMB BOMB",
         },
         new CardPrototype {
             id = 2,
-            initial_strength = 7,
-            name = "Card2",
-            description = "Banger card 2",
+            initial_strength = 4,
+            name = "Healer",
+            description = "Heal Heal",
         },
         new CardPrototype {
             id = 3,
