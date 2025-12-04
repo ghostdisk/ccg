@@ -6,15 +6,15 @@ using System.Collections.Generic;
 using System;
 
 class UnityClientGame : ClientGame {
-    private GameController GC;
+    private GameView G;
     private UnityClient client;
     private Queue<Func<Task>> animationTimeline = new Queue<Func<Task>>();
     bool areAnimationsRunning = false;
 
     public UnityClientGame(UnityClient client, ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1) : base(myPlayer, player0, player1) {
         this.client = client;
-        this.GC = client.GC;
-        GC.menuUiRoot.SetActive(false);
+        G = client.G;
+        G.menuUiRoot.SetActive(false);
     }
 
     public void MulliganCard(int index) {
@@ -43,15 +43,15 @@ class UnityClientGame : ClientGame {
     protected override void S2CGameStartedHandler(S2CGameStarted gameStarted) {
         base.S2CGameStartedHandler(gameStarted);
         Animate(async () => {
-            List<CardView> hand = GC.myViews.hand.RemoveAllCards();
-            await GC.mulliganView.Activate(hand);
+            List<CardView> hand = G.myViews.hand.RemoveAllCards();
+            await G.mulliganView.Activate(hand);
 
             for (int i = 0; i < hand.Count; i++) {
                 int indexInHand = i;
                 CardView card = hand[indexInHand];
                 card.Interactive = true;
                 card.onClick = () => {
-                    card.SetTarget(GC.mulliganView.GetNextDiscardTransformProps());
+                    card.SetTarget(G.mulliganView.GetNextDiscardTransformProps());
                     client.Send(new C2SMulliganSwap {
                         indexInHand = indexInHand,
                     });
@@ -62,7 +62,7 @@ class UnityClientGame : ClientGame {
 
     protected override Card CreateCard(CardPrototype proto, int cardId) {
         UnityCard card = new UnityCard(proto, cardId);
-        card.view = UnityEngine.Object.Instantiate(GC.cardViewPrefab);
+        card.view = UnityEngine.Object.Instantiate(G.cardViewPrefab);
         card.view.gameObject.SetActive(false);
         card.view.card = card;
         return card;
@@ -72,7 +72,7 @@ class UnityClientGame : ClientGame {
         base.DrawCard(player, _card);
 
         Animate(async () => {
-            PlayerViews views = GC.GetPlayerViews(player);
+            PlayerViews views = G.GetPlayerViews(player);
             UnityCard card = (UnityCard)_card;
 
             card.view.SetTarget(views.deck.GetTransformProps());

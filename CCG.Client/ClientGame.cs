@@ -1,13 +1,25 @@
 namespace CCG.Client;
 
 using CCG.Shared;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 public class ClientGame : Game<ClientPlayer, ClientGame> {
 
     public ClientPlayer myPlayer;
     public ClientPlayer opponentPlayer;
-    public Dictionary<int, Card> knownCards = new Dictionary<int, Card>();
+    public Dictionary<int, Card> knownCards = new();
+    private ConcurrentQueue<Action> gameActions = new();
+
+    public void EnqueueGameAction(Action action) {
+        gameActions.Enqueue(action);
+    }
+
+    public void ProcessGameActions() {
+        Action action;
+        while (gameActions.TryDequeue(out action))
+            action();
+    }
 
     public ClientGame(ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1) : base(player0, player1) {
         this.myPlayer = myPlayer;

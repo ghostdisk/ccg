@@ -831,7 +831,7 @@ GameObject:
   - component: {fileID: 4739339094092815700}
   - component: {fileID: 732404895486049741}
   m_Layer: 0
-  m_Name: GAME ROOT
+  m_Name: Game View
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -869,10 +869,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 2824490557962631067}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f0f8b31ab5a01ff4f8eec6eb8ee0c2f1, type: 3}
+  m_Script: {fileID: 11500000, guid: fc655b36592a61c4ba16b3668e08d490, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameController
   cardViewPrefab: {fileID: 5397101469741479652, guid: 8b647391990946c489c8d535a918eee5, type: 3}
+  disableWhenInactive:
+  - {fileID: 715944757586022142}
+  - {fileID: 6768694070974270375}
   myViews:
     hand: {fileID: 1579016745943965655}
     deck: {fileID: 2540832552053196096}
@@ -886,9 +889,6 @@ MonoBehaviour:
   matchmakingText: {fileID: 5625854897324512067}
   matchmakingButtonText: {fileID: 6984375064971804013}
   matchmakingButton: {fileID: 5788541655250928727}
-  disableWhenInactive:
-  - {fileID: 6768694070974270375}
-  - {fileID: 715944757586022142}
 --- !u!1 &2859775477356961215
 GameObject:
   m_ObjectHideFlags: 0
@@ -1062,7 +1062,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Not connected.
+  m_text: <connection state>
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

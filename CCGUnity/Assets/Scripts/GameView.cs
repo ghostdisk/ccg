@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System;
 using UnityEngine.UI;
@@ -12,14 +11,14 @@ class PlayerViews {
     public DeckView deck;
 };
 
-class GameController : MonoBehaviour {
+class GameView : MonoBehaviour {
     public UnityClient client;
-    public ConcurrentQueue<Action> actionQueue;
 
     [Header("Prefabs")]
     public CardView cardViewPrefab;
 
     [Header("Global Views")]
+    public List<GameObject> disableWhenInactive = new();
     public PlayerViews myViews;
     public PlayerViews opponentViews;
     public MulliganView mulliganView;
@@ -32,33 +31,27 @@ class GameController : MonoBehaviour {
     public TextMeshProUGUI matchmakingButtonText;
     public Button matchmakingButton;
 
-    public List<GameObject> disableWhenInactive = new();
 
     void Start() {
         menuUiRoot.SetActive(true);
-        actionQueue = new ConcurrentQueue<Action>();
+        matchmakingPanel.SetActive(false);
+        matchmakingButton.onClick.AddListener(OnMatchmakingButtonPress);
 
         client = new UnityClient();
-        client.GC = this;
-
-        connectionStateText.text = "Not connected.";
-        matchmakingPanel.SetActive(false);
-
+        client.G = this;
         client.Connect();
     }
 
     void Update() {
-        Action action;
-        while (actionQueue.TryDequeue(out action)) {
-            action();
-        }
-    }
-
-    public void OnMatchmakingButtonPress() {
-        client.OnMatchmakingButtonPress();
+        client.ExecGameThreadCallbacks();
     }
 
     public PlayerViews GetPlayerViews(ClientPlayer player) {
         return player == client.game.myPlayer ? myViews : opponentViews;
     }
+
+    void OnMatchmakingButtonPress() {
+        client.OnMatchmakingButtonPress();
+    }
+
 }
