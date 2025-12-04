@@ -46,7 +46,8 @@ class UnityClientGame : ClientGame {
             List<CardView> hand = GC.myViews.hand.RemoveAllCards();
             await GC.mulliganView.Activate(hand);
 
-            for (int indexInHand = 0; indexInHand < hand.Count; indexInHand++) {
+            for (int i = 0; i < hand.Count; i++) {
+                int indexInHand = i;
                 CardView card = hand[indexInHand];
                 card.Interactive = true;
                 card.onClick = () => {
