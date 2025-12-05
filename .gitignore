@@ -22,3 +22,6 @@ CCGUnity/Assets/CCG.Client.dll
 CCGUnity/Assets/CCG.Client.dll.pdb
 CCGUnity/Assets/CCG.Shared.dll
 CCGUnity/Assets/CCG.Shared.dll.pdb
+*.blend1
+*.kra~
+*.png~
