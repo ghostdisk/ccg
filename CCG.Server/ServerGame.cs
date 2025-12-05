@@ -4,7 +4,7 @@ namespace CCG.Server;
 
 class ServerGame : Game<ServerPlayer,ServerGame> {
 
-    public GameState state = GameState.Mulligan;
+    public GamePhase state = GamePhase.Mulligan;
     private int nextCardId = 1;
     Random rng;
 
@@ -63,7 +63,7 @@ class ServerGame : Game<ServerPlayer,ServerGame> {
     }
 
     private void HandleMulliganSwap(ServerPlayer player, int indexInHand) {
-        if (state != GameState.Mulligan) {
+        if (state != GamePhase.Mulligan) {
             player.SendMessage(new S2CErrorNotify { message = "Not in mulligan phase." });
             return;
         }
@@ -103,13 +103,13 @@ class ServerGame : Game<ServerPlayer,ServerGame> {
 
     private void CheckForMulliganEnd() {
         if (players.All((player) => player.mulligansRemaining == 0)) {
-            state = GameState.Playing;
-            SendToAll(new S2CMulliganDone());
+            state = GamePhase.Blind;
+            SendToAll(new S2CBlindPhaseStart());
         }
     }
 
     private void HandleDoneWithMulligan(ServerPlayer player) {
-        if (state != GameState.Mulligan) {
+        if (state != GamePhase.Mulligan) {
             player.SendMessage(new S2CErrorNotify { message = "Not in mulligan phase." });
             return;
         }

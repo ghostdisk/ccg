@@ -40,7 +40,7 @@ public class UnityClientGame : ClientGame {
         }
     }
 
-    protected override void S2CMulliganDoneHandler(S2CMulliganDone mulliganDone) {
+    protected override void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
         Animate(async () => {
             List<CardView> hand = G.mulliganView.Deactivate();
 
@@ -52,11 +52,16 @@ public class UnityClientGame : ClientGame {
             }).ToArray());
 
             await Task.Delay(200);
+
+            foreach (CardView card in hand) {
+                card.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromHand;
+            }
         });
     }
 
     protected override void S2CDoneWithMulliganResultHandler(S2CDoneWithMulliganResult doneWithMulliganResult) {
-        Debug.Log($"UnityClientGame: [Mulligan] p{doneWithMulliganResult.player} done with mulligan.");
+        base.S2CDoneWithMulliganResultHandler(doneWithMulliganResult);
+        // Debug.Log($"[Mulligan] p{doneWithMulliganResult.player} done with mulligan.");
     }
 
     protected override void S2CGameStartedHandler(S2CGameStarted gameStarted) {
@@ -102,7 +107,7 @@ public class UnityClientGame : ClientGame {
             views.hand.AddCard(card.view);
             views.hand.UpdateCardsPositions();
 
-            await Task.Delay(175);
+            // await Task.Delay(175);
         });
     }
 

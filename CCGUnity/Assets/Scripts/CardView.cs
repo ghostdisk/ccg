@@ -1,18 +1,24 @@
 ﻿using System;
 using UnityEngine;
 
-public class CardView : MonoBehaviour {
+[Flags]
+public enum CardViewInteractionMode {
+    None = 0,
+    Click = 1,
+    DragFromHand = 2,
+};
 
+public class CardView : MonoBehaviour {
     public UnityCard card;
     public Action onClick;
 
     [SerializeField] float speed = 10.0f;
     [SerializeField] float hoverSpeed = 20.0f;
 
-    [SerializeField] Transform child;
-    [SerializeField] MeshRenderer meshRenderer;
-    [SerializeField] Color emissionColor;
-    [SerializeField] float emissionStrength = 0.0f;
+    [SerializeField] private Transform child;
+    [SerializeField] private MeshRenderer meshRenderer;
+    [SerializeField] private Color emissionColor;
+    [SerializeField] private float emissionStrength = 0.0f;
 
     private TransformProps target;
     private TransformProps childTarget;
@@ -21,15 +27,31 @@ public class CardView : MonoBehaviour {
     private Material artMaterial;
     private float currentEmissionStrength = 0.0f;
     private float targetEmissionStrength = 0.0f;
-    private bool _isInteractive = false;
+
     private bool isHovered = false;
+    private bool isMouseDown = false;
+    private bool isDragged = false;
+    private Vector2 dragOffset;
+    private Vector2 mouseDownPos;
 
     private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
+    private static CardView downCard = null;
 
-    public bool Interactive {
-        get { return _isInteractive; }
-        set { _isInteractive = value; UpdateHoverState(); }
+    public CardViewInteractionMode InteractionMode {
+        get {
+            return _interactionMode;
+        }
+        set {
+            _interactionMode = value;
+            if ((_interactionMode & CardViewInteractionMode.Click) == 0) {
+                onClick = null;
+            }
+            UpdateHoverState();
+        }
     }
+
+
+    private CardViewInteractionMode _interactionMode;
 
     void Awake() {
         material = Instantiate(meshRenderer.materials[0]);
@@ -40,9 +62,9 @@ public class CardView : MonoBehaviour {
         meshRenderer.materials = materials;
 
         target = new TransformProps(Vector3.zero);
-        childTarget = new TransformProps(Vector3.zero, Quaternion.Euler(-90, 0, -180));
+        childTarget = new TransformProps(Vector3.zero);
 
-        Interactive = false;
+        InteractionMode = CardViewInteractionMode.None;
 
         OnCardUpdate();
     }
@@ -57,16 +79,43 @@ public class CardView : MonoBehaviour {
 
             material.SetColor(EmissionColor, emissionColor * currentEmissionStrength);
         }
-        Move(Time.deltaTime * speed);
+
+        if (isMouseDown) {
+            if (Input.GetMouseButtonUp(0)) {
+                isMouseDown = false;
+                downCard = null;
+
+                if (isDragged) {
+                }
+                else if (isHovered) {
+                    if (onClick != null)
+                        onClick();
+                }
+                UpdateHoverState();
+            }
+        }
+        else {
+            Move(Time.deltaTime * speed);
+        }
     }
 
     void UpdateHoverState() {
-        if (isHovered && _isInteractive) {
-            childTarget.scale = new Vector3(1.1f, 1.1f, 1.1f);
+        bool interactive = (downCard == null || downCard == this) && (isHovered || isMouseDown);
+
+        if ((InteractionMode & CardViewInteractionMode.DragFromHand) != 0) {
+            if (interactive) {
+                childTarget.position = new Vector3(0, 0.25f, 0.3f);
+            }
+            else {
+                childTarget.position = Vector3.zero;
+            }
+        }
+
+        if (InteractionMode != CardViewInteractionMode.None && interactive) {
             targetEmissionStrength = emissionStrength;
         }
         else {
-            childTarget.scale = new Vector3(1,1,1);
+            // childTarget.scale = new Vector3(1,1,1);
             targetEmissionStrength = 0.0f;
         }
     }
@@ -82,8 +131,15 @@ public class CardView : MonoBehaviour {
     }
 
     private void OnMouseDown() {
-        if (_isInteractive && onClick != null) {
-            onClick();
+        if ((InteractionMode & CardViewInteractionMode.DragFromHand) != 0) {
+            isMouseDown = true;
+            downCard = this;
+            mouseDownPos = Input.mousePosition;
+        }
+        else if ((InteractionMode & CardViewInteractionMode.Click) != 0) {
+            isMouseDown = true;
+            downCard = this;
+            mouseDownPos = Input.mousePosition;
         }
     }
 

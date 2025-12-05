@@ -49,8 +49,8 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
             case S2CMulliganResult mulliganResult:
                 S2CMulliganResultHandler(mulliganResult);
                 return true;
-            case S2CMulliganDone mulliganDone:
-                S2CMulliganDoneHandler(mulliganDone);
+            case S2CBlindPhaseStart blindPhaseStart:
+                S2CBlindPhaseStartHandler(blindPhaseStart);
                 return true;
             case S2CDoneWithMulliganResult doneWithMulliganResult:
                 S2CDoneWithMulliganResultHandler(doneWithMulliganResult);
@@ -90,7 +90,7 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
         player.mulligansRemaining = mulliganResult.mulligansRemaining;
     }
 
-    protected virtual void S2CMulliganDoneHandler(S2CMulliganDone mulliganDone) {
+    protected virtual void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
     }
 
     protected virtual void S2CDoneWithMulliganResultHandler(S2CDoneWithMulliganResult doneWithMulliganResult) {

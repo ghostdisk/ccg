@@ -6,7 +6,7 @@ using MessagePack;
 [Union(2, typeof(S2CGameStarted))]
 [Union(3, typeof(S2CMatchmakingState))]
 [Union(4, typeof(S2CMulliganResult))]
-[Union(5, typeof(S2CMulliganDone))]
+[Union(5, typeof(S2CBlindPhaseStart))]
 [Union(6, typeof(S2CCardInfo))]
 [Union(7, typeof(S2CDoneWithMulliganResult))]
 [Union(8, typeof(S2CPing))]
@@ -54,7 +54,7 @@ public class S2CDoneWithMulliganResult : S2CMessage {
 }
 
 [MessagePackObject]
-public class S2CMulliganDone : S2CMessage {
+public class S2CBlindPhaseStart : S2CMessage {
 }
 
 [MessagePackObject]

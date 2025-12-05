@@ -7,6 +7,9 @@ using MessagePack;
 [Union(3, typeof(C2SMulliganSwap))]
 [Union(4, typeof(C2SDoneWithMulligan))]
 [Union(5, typeof(C2SPong))]
+[Union(6, typeof(C2S_BlindStage_PlaceCard))]
+[Union(7, typeof(C2S_BlindStage_ReturnCard))]
+[Union(8, typeof(C2S_BlindStage_Done))]
 public abstract class C2SMessage {
 }
 
@@ -30,4 +33,20 @@ public class C2SDoneWithMulligan : C2SMessage {
 
 [MessagePackObject]
 public class C2SPong : C2SMessage {
+}
+
+[MessagePackObject]
+public class C2S_BlindStage_PlaceCard : C2SMessage {
+    [Key(0)]
+    public int cardID;
+}
+
+[MessagePackObject]
+public class C2S_BlindStage_ReturnCard : C2SMessage {
+    [Key(0)]
+    public int cardID;
+}
+
+[MessagePackObject]
+public class C2S_BlindStage_Done : C2SMessage {
 }
