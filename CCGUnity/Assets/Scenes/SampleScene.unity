@@ -473,10 +473,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Game View 1
       objectReference: {fileID: 0}
-    - target: {fileID: 2906616421076343798, guid: 2e355488cd591174ab4f00f4b4409a33, type: 3}
-      propertyPath: m_ColorTemperature
-      value: 4517
-      objectReference: {fileID: 0}
     - target: {fileID: 4739339094092815700, guid: 2e355488cd591174ab4f00f4b4409a33, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

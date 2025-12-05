@@ -40,22 +40,41 @@ public class UnityClientGame : ClientGame {
         }
     }
 
+    IEnumerable<Target> BlindPhaseAllowedTargetsFunc(CardView card) =>
+        G.fieldTargets
+            .Cast<Target>()
+            .Where(target => CheckCanPlayerPlayCardsOnField(myPlayer, target.position));
+
+    void BlindPhaseCardPlayCallback(CardView cardView, Target target) {
+        Card card = cardView.card;
+        board[target.position.column, target.position.row].card = card;
+
+        client.Send(new C2S_BlindStage_PlaceCard {
+            cardID = card.card_id,
+            position = target.position,
+        });
+
+        HandView handView = G.myViews.hand;
+        handView.RemoveCard(cardView);
+        cardView.SetTarget(new TransformProps(target.transform));
+        handView.AllowPlayingFromHand(BlindPhaseAllowedTargetsFunc, BlindPhaseCardPlayCallback);
+    }
+
     protected override void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
         Animate(async () => {
-            List<CardView> hand = G.mulliganView.Deactivate();
+            HandView handView = G.myViews.hand;
 
-            await Task.WhenAll(hand.Select(async (card, index) => {
+            List<CardView> handCards = G.mulliganView.Deactivate();
+
+            await Task.WhenAll(handCards.Select(async (card, index) => {
                 await Task.Delay(index * 25);
-
-                G.myViews.hand.AddCard(card);
-                G.myViews.hand.UpdateCardsPositions();
+                handView.AddCard(card);
+                handView.UpdateCardsPositions();
             }).ToArray());
 
             await Task.Delay(200);
 
-            foreach (CardView card in hand) {
-                card.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromHand;
-            }
+            handView.AllowPlayingFromHand(BlindPhaseAllowedTargetsFunc, BlindPhaseCardPlayCallback);
         });
     }
 

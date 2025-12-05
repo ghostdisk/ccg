@@ -11,6 +11,7 @@ public enum CardViewInteractionMode {
 public class CardView : MonoBehaviour {
     public UnityCard card;
     public Action onClick;
+    public Action onDragOutOfHand;
 
     [SerializeField] float speed = 10.0f;
     [SerializeField] float hoverSpeed = 20.0f;
@@ -30,9 +31,7 @@ public class CardView : MonoBehaviour {
 
     private bool isHovered = false;
     private bool isMouseDown = false;
-    private bool isDragged = false;
-    private Vector2 dragOffset;
-    private Vector2 mouseDownPos;
+    private Vector3 mouseDownPos;
 
     private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
     private static CardView downCard = null;
@@ -84,15 +83,14 @@ public class CardView : MonoBehaviour {
             if (Input.GetMouseButtonUp(0)) {
                 isMouseDown = false;
                 downCard = null;
-
-                if (isDragged) {
-                }
-                else if (isHovered) {
-                    if (onClick != null)
+                if (isHovered) {
+                    if (onClick != null) {
+                        childTarget = new TransformProps(Vector3.zero);
                         onClick();
+                    }
                 }
-                UpdateHoverState();
             }
+            UpdateHoverState();
         }
         else {
             Move(Time.deltaTime * speed);
@@ -104,7 +102,25 @@ public class CardView : MonoBehaviour {
 
         if ((InteractionMode & CardViewInteractionMode.DragFromHand) != 0) {
             if (interactive) {
-                childTarget.position = new Vector3(0, 0.25f, 0.3f);
+                float zOffset = 0.35f;
+                if (isMouseDown) {
+                    Vector3 mouse = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
+                    float add = (mouse.z - mouseDownPos.z) * 0.8f;
+                    zOffset += add;
+
+                    if (add > 0.3) {
+                        isMouseDown = false;
+                        downCard = null;
+                        childTarget = new TransformProps(Vector3.zero);
+                        onDragOutOfHand();
+                    }
+                    else {
+                        childTarget.position = new Vector3(0, 0.25f, zOffset);
+                    }
+                }
+                else {
+                    childTarget.position = new Vector3(0, 0.25f, zOffset);
+                }
             }
             else {
                 childTarget.position = Vector3.zero;
@@ -134,12 +150,11 @@ public class CardView : MonoBehaviour {
         if ((InteractionMode & CardViewInteractionMode.DragFromHand) != 0) {
             isMouseDown = true;
             downCard = this;
-            mouseDownPos = Input.mousePosition;
+            mouseDownPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
         }
         else if ((InteractionMode & CardViewInteractionMode.Click) != 0) {
             isMouseDown = true;
             downCard = this;
-            mouseDownPos = Input.mousePosition;
         }
     }
 

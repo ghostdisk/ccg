@@ -1,13 +1,15 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
-using CCG.Shared;
+using System;
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
 public class HandView : MonoBehaviour {
+
+    public Transform playedCardPosition;
 
     private List<CardView> cards = new();
 
@@ -17,16 +19,43 @@ public class HandView : MonoBehaviour {
     [SerializeField] private float maxUseSpace = 1.0f;
     [SerializeField] private bool isOpponentHand = false;
 
+    private CardView cardPendingPlay;
+    private bool cardPendingPlayFromDrag;
+    private Func<CardView, IEnumerable<Target>> allowedTargetsFunc;
+    private Action<CardView, Target> cardPlayFunc;
+
     public void AddCard(CardView card) {
         cards.Add(card);
         UpdateCardsPositions();
         card.ToggleShadowCast(!isOpponentHand);
     }
 
+    public void RemoveCard(CardView card) {
+        cards.Remove(card);
+        UpdateCardsPositions();
+    }
+
     public List<CardView> RemoveAllCards() {
         List<CardView> allCards = cards;
         cards = new List<CardView>();
         return allCards;
+    }
+
+    void Update() {
+        if (cardPendingPlay) {
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                CancelPlayingCard();
+            }
+            if (Input.GetMouseButtonDown(1)) {
+                CancelPlayingCard();
+            }
+            if (Input.GetMouseButtonUp(0) && cardPendingPlayFromDrag) {
+                FinishPlayingCard();
+            }
+            if (Input.GetMouseButtonDown(0) && !cardPendingPlayFromDrag) {
+                FinishPlayingCard();
+            }
+        }
     }
 
     public TransformProps[] GetCardTransformProps() {
@@ -64,6 +93,59 @@ public class HandView : MonoBehaviour {
         TransformProps[] props = GetCardTransformProps();
         for (int i = 0; i < cards.Count; i++) {
             cards[i].SetTarget(props[i]);
+        }
+    }
+
+    void BeginPlayingCard(CardView cardToPlay, bool fromDrag) {
+        foreach (CardView card in cards) {
+            card.InteractionMode = 0;
+        }
+
+        cardPendingPlayFromDrag = fromDrag;
+        cardToPlay.SetTarget(new TransformProps(playedCardPosition));
+        cardToPlay.InteractionMode = 0;
+        cardPendingPlay = cardToPlay;
+
+        foreach (Target target in allowedTargetsFunc(cardToPlay))
+            target.Activate();
+    }
+
+    void FinishPlayingCard() {
+        if (Target.hoveredTarget != null) {
+            CardView card = cardPendingPlay;
+            cardPendingPlay = null;
+
+            Target target = Target.hoveredTarget;
+            Target.DeactivateAll();
+
+            UpdateCardsPositions();
+
+            cardPlayFunc(card, target);
+        }
+        else {
+            CancelPlayingCard();
+        }
+    }
+
+    void CancelPlayingCard() {
+        cardPendingPlay = null;
+        foreach (CardView card in cards) {
+            card.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromHand;
+            card.onClick = () => { BeginPlayingCard(card, false); };
+            card.onDragOutOfHand = () => { BeginPlayingCard(card, true); };
+        }
+        Target.DeactivateAll();
+        UpdateCardsPositions();
+    }
+
+    public void AllowPlayingFromHand(Func<CardView, IEnumerable<Target>> allowedTargetsFunc, Action<CardView, Target> cardPlayFunc) {
+        this.allowedTargetsFunc = allowedTargetsFunc;
+        this.cardPlayFunc = cardPlayFunc;
+
+        foreach (CardView card in cards) {
+            card.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromHand;
+            card.onClick = () => { BeginPlayingCard(card, false); };
+            card.onDragOutOfHand = () => { BeginPlayingCard(card, true); };
         }
     }
 }

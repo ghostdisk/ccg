@@ -39,6 +39,9 @@ public class C2SPong : C2SMessage {
 public class C2S_BlindStage_PlaceCard : C2SMessage {
     [Key(0)]
     public int cardID;
+
+    [Key(1)]
+    public Position position;
 }
 
 [MessagePackObject]

@@ -7,6 +7,7 @@ public class Game<TPlayer, TGame>
 
     public TPlayer[] players;
     public Field[,] board;
+    public GamePhase phase;
 
     public Game(TPlayer player0, TPlayer player1) {
         Deck deck1 = new Deck();
@@ -20,6 +21,8 @@ public class Game<TPlayer, TGame>
 
         player0.opponent = player1;
         player1.opponent = player0;
+
+        phase = GamePhase.Mulligan;
     }
 
     public TPlayer GetPlayer(int index) {
@@ -33,11 +36,11 @@ public class Game<TPlayer, TGame>
             return row >= GameRules.Rows - GameRules.HomeRows;
     }
 
-    protected bool CheckCanPlayerPlayCardsOnField(TPlayer player, int col, int row) {
-        if (!CheckIsHomeRow(player, row))
+    protected bool CheckCanPlayerPlayCardsOnField(TPlayer player, Position position) {
+        if (!CheckIsHomeRow(player, position.row))
             return false;
 
-        if (board[col, row].card != null)
+        if (board[position.column, position.row].card != null)
             return false;
 
         return true;
