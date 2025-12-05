@@ -34,16 +34,11 @@ public class UnityClient : Client<UnityClientGame> {
         G.connectionStateText.text = "Connecting...";
     }
 
-    protected override void HandleMessage(S2CMessage message) {
-        base.HandleMessage(message);
-    }
-
     protected override void OnLostConnection(string reason) {
         Debug.Log("Lost Connection: " + reason);
         G.connectionStateText.text = "Not connected.";
         G.matchmakingPanel.SetActive(false);
     }
-
 
     protected override void OnConnected() {
         G.connectionStateText.text = "Connected!";
@@ -57,6 +52,7 @@ public class UnityClient : Client<UnityClientGame> {
         if (matchmakingState == MatchmakingState.Joined)
             LeaveMatchmaking();
     }
+
     protected override UnityClientGame CreateGame(ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1) {
         return new UnityClientGame(this, myPlayer, player0, player1);
     }

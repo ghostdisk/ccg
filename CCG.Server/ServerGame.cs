@@ -1,10 +1,8 @@
 ﻿using CCG.Shared;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace CCG.Server;
 
-internal class ServerGame : Game<ServerPlayer,ServerGame> {
+class ServerGame : Game<ServerPlayer,ServerGame> {
 
     public GameState state = GameState.Mulligan;
     private int nextCardId = 1;

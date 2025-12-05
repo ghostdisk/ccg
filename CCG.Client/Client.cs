@@ -72,11 +72,14 @@ public abstract class Client<TGame> where TGame : ClientGame {
     protected abstract TGame CreateGame(ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1);
 
     // Executed on game thread
-    protected virtual void HandleMessage(S2CMessage message) {
-        if (game != null) {
-            game.HandleMessage(message);
+    protected void HandleMessage(S2CMessage message) {
+        if (game != null && game.HandleMessage(message)) {
+            return;
         }
         switch (message) {
+            case S2CPing:
+                Send(new C2SPong());
+                break;
             case S2CMatchmakingState matchmakingStateMessage:
                 matchmakingState = matchmakingStateMessage.state;
                 OnMatchmakingStateChanged(matchmakingState);

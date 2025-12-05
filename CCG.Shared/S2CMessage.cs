@@ -9,6 +9,7 @@ using MessagePack;
 [Union(5, typeof(S2CMulliganDone))]
 [Union(6, typeof(S2CCardInfo))]
 [Union(7, typeof(S2CDoneWithMulliganResult))]
+[Union(8, typeof(S2CPing))]
 public abstract class S2CMessage {
 }
 
@@ -60,4 +61,8 @@ public class S2CMulliganDone : S2CMessage {
 public class S2CCardInfo : S2CMessage {
     [Key(0)]
     public List<CardInfo> cardInfos = new List<CardInfo>();
+}
+
+[MessagePackObject]
+public class S2CPing : S2CMessage {
 }

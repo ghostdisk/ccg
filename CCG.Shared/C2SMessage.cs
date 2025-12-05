@@ -6,6 +6,7 @@ using MessagePack;
 [Union(2, typeof(C2SLeaveMatchmaking))]
 [Union(3, typeof(C2SMulliganSwap))]
 [Union(4, typeof(C2SDoneWithMulligan))]
+[Union(5, typeof(C2SPong))]
 public abstract class C2SMessage {
 }
 
@@ -25,4 +26,8 @@ public class C2SMulliganSwap : C2SMessage {
 
 [MessagePackObject]
 public class C2SDoneWithMulligan : C2SMessage {
+}
+
+[MessagePackObject]
+public class C2SPong : C2SMessage {
 }

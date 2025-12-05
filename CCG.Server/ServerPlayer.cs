@@ -1,15 +1,15 @@
 ﻿using CCG.Server;
 using CCG.Shared;
 
-internal class ServerPlayer : Player<ServerPlayer,ServerGame> {
-    public Client client;
+class ServerPlayer : Player<ServerPlayer,ServerGame> {
+    public Connection connection;
 
-    public ServerPlayer(Client client, int index) : base(index) {
-        this.client = client;
-        this.client.player = this;
+    public ServerPlayer(Connection connection, int index) : base(index) {
+        this.connection = connection;
+        this.connection.player = this;
     }
 
     public void SendMessage(S2CMessage message) {
-        client.SendMessage(message);
+        connection.SendMessage(message);
     }
 }

@@ -44,25 +44,27 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
         card.strength = card.prototype.initial_strength;
     }
 
-    public void HandleMessage(S2CMessage message) {
+    public bool HandleMessage(S2CMessage message) {
         switch (message) {
             case S2CMulliganResult mulliganResult:
                 S2CMulliganResultHandler(mulliganResult);
-                break;
+                return true;
             case S2CMulliganDone mulliganDone:
                 S2CMulliganDoneHandler(mulliganDone);
-                break;
+                return true;
             case S2CDoneWithMulliganResult doneWithMulliganResult:
                 S2CDoneWithMulliganResultHandler(doneWithMulliganResult);
-                break;
+                return true;
             case S2CGameStarted gameStarted:
                 S2CGameStartedHandler(gameStarted);
-                break;
+                return true;
             case S2CCardInfo cardInfoMessage:
                 foreach (CardInfo cardInfo in cardInfoMessage.cardInfos) {
                     RevealCard(cardInfo);
                 }
-                break;
+                return true;
+            default:
+                return false;
         }
     }
 

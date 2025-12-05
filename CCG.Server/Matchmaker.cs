@@ -3,31 +3,39 @@
 namespace CCG.Server;
 
 class Matchmaker {
-    public List<Client> queue = new List<Client>();
+    public List<Connection> queue = new List<Connection>();
+    private object syncLock = new object(); 
 
-    public void AddClient(Client client) {
-        if (queue.Contains(client)) {
-            return;
-        }
+    public void AddClient(Connection connection) {
+        lock (syncLock) {
+            if (!connection.inMatchmaking) {
+                connection.inMatchmaking = true;
 
-        queue.Add(client);
+                queue.Add(connection);
 
-        if (queue.Count >= 2) {
-            Client client1 = queue[0];
-            Client client2 = queue[1];
-            queue.RemoveAt(0);
-            queue.RemoveAt(0);
-            StartGame(client1, client2);
+                if (queue.Count >= 2) {
+                    Connection conn1 = queue[0];
+                    Connection conn2 = queue[1];
+                    queue.RemoveAt(0);
+                    queue.RemoveAt(0);
+                    StartGame(conn1, conn2);
+                }
+            }
         }
     }
 
-    public void RemoveClient(Client client) {
-        queue.Remove(client);
+    public void RemoveClient(Connection connection) {
+        lock (syncLock) {
+            if (connection.inMatchmaking) {
+                queue.Remove(connection);
+                connection.inMatchmaking = false;
+            }
+        }
     }
 
-    void StartGame(Client client0, Client client1) {
-        ServerPlayer player0 = new ServerPlayer(client0, 0);
-        ServerPlayer player1 = new ServerPlayer(client1, 1);
+    void StartGame(Connection conn0, Connection conn1) {
+        ServerPlayer player0 = new ServerPlayer(conn0, 0);
+        ServerPlayer player1 = new ServerPlayer(conn1, 1);
 
         ServerGame game = new ServerGame(player0, player1);
         game.Start();
