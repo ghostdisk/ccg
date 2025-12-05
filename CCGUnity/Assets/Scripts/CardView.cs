@@ -157,7 +157,8 @@ public class CardView : MonoBehaviour {
 
     public void OnCardUpdate() {
         if (card != null) {
-            artMaterial.SetTexture("_BaseMap", GlobalRefs.Instance.cardArt[card.prototype.id]);
+            //artMaterial.SetTexture("_BaseMap", GlobalRefs.Instance.cardArt[card.prototype.id]);
+            artMaterial.mainTexture = GlobalRefs.Instance.cardArt[card.prototype.id];
         }
     }
 
