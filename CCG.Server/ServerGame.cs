@@ -52,7 +52,7 @@ class ServerGame : Game<ServerPlayer,ServerGame> {
     public bool HandleMessage(ServerPlayer player, C2SMessage message) {
         switch (message) {
             case C2SMulliganSwap mulliganSwap:
-                HandleMulliganSwap(player, mulliganSwap.indexInHand);
+                HandleMulliganSwap(player, mulliganSwap.cardID);
                 return true;
             case C2SDoneWithMulligan doneWithMulligan:
                 HandleDoneWithMulligan(player);
@@ -62,7 +62,7 @@ class ServerGame : Game<ServerPlayer,ServerGame> {
         }
     }
 
-    private void HandleMulliganSwap(ServerPlayer player, int indexInHand) {
+    private void HandleMulliganSwap(ServerPlayer player, int cardID) {
         if (state != GamePhase.Mulligan) {
             player.SendMessage(new S2CErrorNotify { message = "Not in mulligan phase." });
             return;
@@ -71,7 +71,9 @@ class ServerGame : Game<ServerPlayer,ServerGame> {
             player.SendMessage(new S2CErrorNotify { message = "No mulligans remaining." });
             return;
         }
-        if (indexInHand < 0 || indexInHand >= player.hand.Count) {
+
+        int indexInHand = player.hand.FindIndex(card => card.card_id == cardID);
+        if (indexInHand < 0) {
             player.SendMessage(new S2CErrorNotify { message = "Invalid card index." });
             return;
         }

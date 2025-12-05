@@ -6,6 +6,7 @@ public enum CardViewInteractionMode {
     None = 0,
     Click = 1,
     DragFromHand = 2,
+    DragFromBoard = 3,
 };
 
 public class CardView : MonoBehaviour {

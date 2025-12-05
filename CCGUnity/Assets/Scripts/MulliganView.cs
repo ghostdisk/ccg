@@ -34,7 +34,7 @@ public class MulliganView : MonoBehaviour {
     public int confirmedMulligansRemaining;
 
     private float discardY = 0;
-    private Action<CardView, int> cardSwapAction;
+    private Action<CardView> cardSwapAction;
 
     void Start() {
         uiRoot.SetActive(false);
@@ -42,7 +42,7 @@ public class MulliganView : MonoBehaviour {
         IsActive = false;
     }
 
-    public async Task Activate(List<CardView> cards, Action doneButtonAction, Action<CardView, int> cardSwapAction, int remaining) {
+    public async Task Activate(List<CardView> cards, Action doneButtonAction, Action<CardView> cardSwapAction, int remaining) {
         this.cardSwapAction = cardSwapAction;
 
         if (!IsActive) {
@@ -143,7 +143,7 @@ public class MulliganView : MonoBehaviour {
     private void MakeCardSwappable(CardView card, int indexInHand) {
         card.InteractionMode = CardViewInteractionMode.Click;
         card.onClick = () => {
-            cardSwapAction(card, indexInHand);
+            cardSwapAction(card);
             card.SetTarget(GetNextDiscardTransformProps());
             discardPile.Append(card);
             cards[indexInHand] = null;

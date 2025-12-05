@@ -15,17 +15,16 @@ public class PlayerViews {
 public class GameView : MonoBehaviour {
 
     public UnityClient client;
-    public Target[,] fieldTargets;
 
     [Header("Prefabs")]
     public CardView cardViewPrefab;
-    public Target fieldTargetPrefab;
 
     [Header("Global Views")]
     public List<GameObject> disableWhenInactive = new();
     public PlayerViews myViews;
     public PlayerViews opponentViews;
     public MulliganView mulliganView;
+    public BoardView boardView;
 
     [Header("Menu UI")]
     public GameObject menuUiRoot;
@@ -40,23 +39,6 @@ public class GameView : MonoBehaviour {
         matchmakingPanel.SetActive(false);
         matchmakingButton.onClick.AddListener(OnMatchmakingButtonPress);
 
-        fieldTargets = new Target[GameRules.Columns, GameRules.Rows];
-        for (int column = 0; column < GameRules.Columns; column++) {
-            for (int row = 0; row < GameRules.Rows; row++) {
-                Target fieldTarget = Instantiate(fieldTargetPrefab);
-
-                fieldTarget.position = new Position {
-                    column = column,
-                    row = row,
-                };
-
-                fieldTarget.transform.SetParent(transform);
-                fieldTarget.transform.localPosition = new Vector3(column, 0, row);
-                fieldTarget.Deactivate();
-
-                fieldTargets[column, row] = fieldTarget;
-            }
-        }
 
         client = new UnityClient();
         client.G = this;

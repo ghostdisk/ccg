@@ -14,6 +14,7 @@ public class HandView : MonoBehaviour {
     private List<CardView> cards = new();
 
     [SerializeField] private SplineContainer splineContainer;
+    [SerializeField] private Target handTarget;
     [SerializeField] private List<float> spacings;
     [SerializeField] private List<float> cardRotation;
     [SerializeField] private float maxUseSpace = 1.0f;

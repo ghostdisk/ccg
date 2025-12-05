@@ -40,24 +40,22 @@ public class UnityClientGame : ClientGame {
         }
     }
 
-    IEnumerable<Target> BlindPhaseAllowedTargetsFunc(CardView card) =>
-        G.fieldTargets
+    IEnumerable<Target> BlindPhase_AllowedTargetsFunc(CardView card) =>
+        G.boardView.fieldTargets
             .Cast<Target>()
             .Where(target => CheckCanPlayerPlayCardsOnField(myPlayer, target.position));
 
-    void BlindPhaseCardPlayCallback(CardView cardView, Target target) {
+    void BlindPhase_CardPlayCallback(CardView cardView, Target target) {
         Card card = cardView.card;
         board[target.position.column, target.position.row].card = card;
 
-        client.Send(new C2S_BlindStage_PlaceCard {
-            cardID = card.card_id,
-            position = target.position,
-        });
-
         HandView handView = G.myViews.hand;
         handView.RemoveCard(cardView);
+        handView.AllowPlayingFromHand(BlindPhase_AllowedTargetsFunc, BlindPhase_CardPlayCallback);
+
         cardView.SetTarget(new TransformProps(target.transform));
-        handView.AllowPlayingFromHand(BlindPhaseAllowedTargetsFunc, BlindPhaseCardPlayCallback);
+        cardView.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromBoard;
+
     }
 
     protected override void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
@@ -74,7 +72,7 @@ public class UnityClientGame : ClientGame {
 
             await Task.Delay(200);
 
-            handView.AllowPlayingFromHand(BlindPhaseAllowedTargetsFunc, BlindPhaseCardPlayCallback);
+            handView.AllowPlayingFromHand(BlindPhase_AllowedTargetsFunc, BlindPhase_CardPlayCallback);
         });
     }
 
@@ -91,11 +89,10 @@ public class UnityClientGame : ClientGame {
                 G.mulliganView.SetRemaining(0, 0);
             };
 
-            Action<CardView, int> swapCardAction = (CardView card, int indexInHand) => {
+            Action<CardView> swapCardAction = (CardView card) => {
                 G.mulliganView.SetRemaining(G.mulliganView.mulligansRemaining - 1, G.mulliganView.confirmedMulligansRemaining);
-
                 client.Send(new C2SMulliganSwap {
-                    indexInHand = indexInHand,
+                    cardID = card.card.card_id,
                 });
             };
 
