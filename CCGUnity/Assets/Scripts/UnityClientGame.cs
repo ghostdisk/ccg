@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using UnityEngine.Assertions.Must;
+using System.Runtime.InteropServices;
 
 public class UnityClientGame : ClientGame {
     private GameView G;
@@ -20,10 +20,11 @@ public class UnityClientGame : ClientGame {
     }
 
     protected override void S2CMulliganResultHandler(S2CMulliganResult mulliganResult) {
-        base.S2CMulliganResultHandler(mulliganResult);
-        // Debug.Log($"[Mulligan] p{mulliganResult.player} swapped {mulliganResult.indexInHand} -> {mulliganResult.newCardId}. {mulliganResult.mulligansRemaining} muls left.");
-
         ClientPlayer player = GetPlayer(mulliganResult.player);
+        int indexInHand = player.hand.FindIndex(card => card.card_id == mulliganResult.oldCardId);
+        player.hand[indexInHand] = GetCard(mulliganResult.newCardId);
+        player.mulligansRemaining = mulliganResult.mulligansRemaining;
+
         if (player == myPlayer) {
             G.mulliganView.SetRemaining(G.mulliganView.mulligansRemaining, mulliganResult.mulligansRemaining);
 
@@ -31,7 +32,7 @@ public class UnityClientGame : ClientGame {
                 DeckView deckView = G.GetPlayerViews(player).deck;
                 UnityCard card = (UnityCard)GetCard(mulliganResult.newCardId);
 
-                card.location = CardLocation.Hand(mulliganResult.player, mulliganResult.indexInHand);
+                card.location = CardLocation.Hand(mulliganResult.player, indexInHand);
                 card.view.SetTarget(deckView.GetTransformProps());
                 card.view.JumpToTarget();
 
@@ -39,6 +40,17 @@ public class UnityClientGame : ClientGame {
 
                 await Task.Delay(250);
             });
+        }
+        else {
+            PlayerViews views = G.GetPlayerViews(player);
+
+            UnityCard oldCard = (UnityCard)GetCard(mulliganResult.oldCardId);
+            UnityCard newCard = (UnityCard)GetCard(mulliganResult.newCardId);
+            oldCard.view.gameObject.SetActive(false);
+
+            newCard.location = CardLocation.Hand(mulliganResult.player, indexInHand);
+            views.hand.RemoveCard(oldCard.view);
+            views.hand.AddCard(newCard.view);
         }
     }
 
@@ -49,6 +61,9 @@ public class UnityClientGame : ClientGame {
         switch (oldLocation.type) {
             case CardLocationType.Board:
                 board[oldLocation.val1, oldLocation.val2].card = null;
+                break;
+            case CardLocationType.Hand:
+                G.GetPlayerViews(GetPlayer(oldLocation.val1)).hand.RemoveCard(cardView);
                 break;
             default:
                 break;
@@ -63,6 +78,11 @@ public class UnityClientGame : ClientGame {
             case CardLocationType.Board:
                 board[newLocation.val1, newLocation.val2].card = cardView.card;
                 cardView.SetTarget(new TransformProps(G.Targets[newLocation].transform));
+
+                if (!cardView.gameObject.activeSelf) {
+                    Debug.LogWarning("Card placed on board was inactive. This is likely a desync.");
+                    cardView.gameObject.SetActive(true);
+                }
                 break;
             default:
                 break;
@@ -81,6 +101,28 @@ public class UnityClientGame : ClientGame {
         return locations;
     }
 
+    void OnBlindStageDoneButtonPressed() {
+        G.blindStageView.MakeFinal();
+        G.myViews.hand.IsInteractive = false;
+        G.myViews.hand.RemoveGaps();
+
+        List<Card> cards = board.Cast<Field>()
+            .Where(field => field.card != null)
+            .Select(field => field.card)
+            .ToList();
+
+        foreach (Card card in cards) {
+            ((UnityCard)card).view.ClearCallbacks();
+        }
+
+        client.Send(new C2S_BlindStage_Done {
+            cardsPlayed = cards.Select(card => new C2S_BlindStage_PlayCard {
+                cardID = card.card_id,
+                position = card.location.BoardPosition,
+            }).ToArray(),
+        });
+    }
+
     protected override void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
         Animate(async () => {
             HandView handView = G.myViews.hand;
@@ -96,7 +138,17 @@ public class UnityClientGame : ClientGame {
 
             await Task.Delay(200);
 
-            G.blindStageView.Activate(PlaceCard, GetAllowedBlindStageFields);
+            Action<CardView, CardLocation> placeCard = (CardView cardView, CardLocation location) => {
+                PlaceCard(cardView, location);
+
+                int unitsCount = board.Cast<Field>().Where(field => field.card != null).Count();
+                int remaining = GameRules.BlindStageCards - unitsCount;
+                G.blindStageView.UpdateUI(remaining);
+
+                G.myViews.hand.IsInteractive = remaining > 0;
+            };
+
+            G.blindStageView.Activate(placeCard, GetAllowedBlindStageFields, OnBlindStageDoneButtonPressed, GameRules.BlindStageCards);
 
             handView.AllowPlayingFromHand((CardView cardView, bool fromDrag) => {
                 handView.RemoveCard(cardView);
@@ -147,6 +199,18 @@ public class UnityClientGame : ClientGame {
         });
     }
 
+    protected override void S2CMainPhaseStartHandler(S2CMainPhaseStart mainPhaseStart) {
+        G.blindStageView.Deactivate();
+
+        foreach (var play in mainPhaseStart.plays) {
+            UnityCard card = (UnityCard)RevealCard(play.cardInfo);
+            PlaceCard(card.view, CardLocation.Board(play.position));
+        }
+
+        G.myViews.hand.RemoveGaps();
+        G.opponentViews.hand.RemoveGaps();
+    }
+
     protected override Card CreateCard(CardPrototype proto, int cardId) {
         UnityCard card = new UnityCard(proto, cardId);
         card.view = UnityEngine.Object.Instantiate(G.cardViewPrefab);
@@ -169,7 +233,7 @@ public class UnityClientGame : ClientGame {
             views.hand.AddCard(card.view);
             views.hand.UpdateCardsPositions();
 
-            // await Task.Delay(175);
+            await Task.Delay(100);
         });
     }
 
@@ -189,9 +253,10 @@ public class UnityClientGame : ClientGame {
         areAnimationsRunning = false;
     }
 
-    public override void RevealCard(CardInfo cardInfo) {
-        base.RevealCard(cardInfo);
-        ((UnityCard)GetCard(cardInfo.cardId)).view.OnCardInfoChanged();
+    public override Card RevealCard(CardInfo cardInfo) {
+        UnityCard card = (UnityCard)base.RevealCard(cardInfo);
+        card.view.OnCardInfoChanged();
+        return card;
     }
 }
 

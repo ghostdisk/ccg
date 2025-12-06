@@ -1,0 +1,7 @@
+KNOWN BUGS:
+
+Blind stage: you can have 2 cards played at the same time. Probably easier to reproduce with lower card speed.
+
+Blind stage: Can only drag cards from board
+
+Mulligan: OnmouseDown used instead of click

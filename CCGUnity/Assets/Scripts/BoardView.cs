@@ -11,7 +11,7 @@ public class BoardView : MonoBehaviour {
     public IEnumerable<Target> BoardTargets
         => G.Targets.Values.Where(target => target.location.type == CardLocationType.Board);
 
-    public void Init(GameView G) {
+    public void Init(GameView G, bool flipY) {
         this.G = G;
         for (int column = 0; column < GameRules.Columns; column++) {
             for (int row = 0; row < GameRules.Rows; row++) {
@@ -20,7 +20,7 @@ public class BoardView : MonoBehaviour {
                 fieldTarget.location = CardLocation.Board(new BoardPosition { column = column, row = row });
 
                 fieldTarget.transform.SetParent(transform);
-                fieldTarget.transform.localPosition = new Vector3(column, 0, row);
+                fieldTarget.transform.localPosition = new Vector3(column, 0, flipY ? (GameRules.Rows - row - 1) : row);
                 fieldTarget.Deactivate();
 
                 G.Targets[fieldTarget.location] = fieldTarget;

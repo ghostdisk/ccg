@@ -3,6 +3,7 @@ using CCG.Shared;
 
 class ServerPlayer : Player<ServerPlayer,ServerGame> {
     public Connection connection;
+    public bool blindStageDone = false;
 
     public ServerPlayer(Connection connection, int index) : base(index) {
         this.connection = connection;

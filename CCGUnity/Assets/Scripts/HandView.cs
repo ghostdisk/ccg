@@ -23,7 +23,7 @@ public class HandView : MonoBehaviour {
     CardView pressedCard;
     Vector3 mouseDownPos;
     Action<CardView, bool> cardPlayCallback; // args: card, fromDrag
-    bool _isInteractive;
+    bool _isInteractive = false;
 
     public bool IsInteractive {
         get {
@@ -46,6 +46,7 @@ public class HandView : MonoBehaviour {
         if (card.card.location.type != CardLocationType.Hand) {
             throw new Exception("Card location must be set before calling HandView.AddCard.");
         }
+        card.gameObject.SetActive(true);
 
         if (card.card.location.IndexInHand < 0)
             card.card.location.IndexInHand = card.savedIndexInHand;
@@ -123,6 +124,15 @@ public class HandView : MonoBehaviour {
         return props;
     }
 
+    public void RemoveGaps() {
+        cards.Sort((a, b) => a.card.location.IndexInHand - b.card.location.IndexInHand);
+        for (int i = 0; i < cards.Count; i++) {
+            cards[i].card.location.IndexInHand = i;
+            cards[i].savedIndexInHand = i;
+        }
+        UpdateCardsPositions();
+    }
+
     public void UpdateCardsPositions() {
         TransformProps[] props = GetCardTransformProps();
         foreach (CardView card in cards)
@@ -135,7 +145,7 @@ public class HandView : MonoBehaviour {
     }
 
     void AttachCardCallbacks(CardView card) {
-        card.IsInteractive = true;
+        card.IsInteractive = IsInteractive;
 
         card.OnClickBegin = () => {
             IsInteractive = false;

@@ -169,13 +169,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b1274c8356edbb4784a3a799b129022, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CardView
-  speed: 10
-  hoverSpeed: 18
+  speed: 16
+  hoverSpeed: 20
   child: {fileID: 1742200999769447392}
   meshRenderer: {fileID: 176552211321034213}
   emissionColor: {r: 0, g: 0.7436116, b: 1, a: 1}
   emissionStrength: 1.5
-  sortingGroup: {fileID: 0}
 --- !u!54 &4539373799279809985
 Rigidbody:
   m_ObjectHideFlags: 0

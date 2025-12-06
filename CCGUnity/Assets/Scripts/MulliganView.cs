@@ -17,25 +17,25 @@ public class MulliganView : MonoBehaviour {
 
     [Header("Positions")]
     [SerializeField] public List<Transform> positions;
-    [SerializeField] private Transform firstDiscardPosition;
+    [SerializeField] Transform firstDiscardPosition;
 
     [Header("UI")]
-    [SerializeField] private GameObject uiRoot;
-    [SerializeField] private TextMeshProUGUI infoText;
-    [SerializeField] private Button doneButton;
-    [SerializeField] private float discardClimbPerCard = 0.2f;
-    [SerializeField] private float discardRandomRotation = 45.0f;
+    [SerializeField] GameObject uiRoot;
+    [SerializeField] TextMeshProUGUI infoText;
+    [SerializeField] Button doneButton;
 
     [Header("Misc")]
-    [SerializeField] private ParticleSystem fog;
+    [SerializeField] ParticleSystem fog;
+    [SerializeField] float discardClimbPerCard = 0.2f;
+    [SerializeField] float discardRandomRotation = 45.0f;
 
     public bool IsActive { get; private set; }
 
     public int mulligansRemaining;
     public int confirmedMulligansRemaining;
 
-    private float discardY = 0;
-    private Action<CardView> cardSwapAction;
+    float discardY = 0;
+    Action<CardView> cardSwapAction;
 
     void Start() {
         uiRoot.SetActive(false);
@@ -107,7 +107,6 @@ public class MulliganView : MonoBehaviour {
         if (IsActive) {
             IsActive = false;
             uiRoot.SetActive(false);
-            fog.Stop();
             List<CardView> allCards = cards;
             cards = null;
 
@@ -125,7 +124,7 @@ public class MulliganView : MonoBehaviour {
     }
 
     public void AddReplacedCard(CardView card) {
-        int indexInHand = card.card.location.val1;
+        int indexInHand = card.card.location.IndexInHand;
         card.SetTarget(new TransformProps(positions[indexInHand]));
         card.gameObject.SetActive(true);
         cards[indexInHand] = card;
@@ -134,7 +133,7 @@ public class MulliganView : MonoBehaviour {
             MakeCardSwappable(card, indexInHand);
     }
 
-    private TransformProps GetNextDiscardTransformProps() {
+    TransformProps GetNextDiscardTransformProps() {
         TransformProps props = new TransformProps(firstDiscardPosition);
         props.position.y += discardY;
         props.rotation = Quaternion.Euler(0, UnityEngine.Random.Range(-discardRandomRotation / 2.0f, discardRandomRotation / 2.0f), 0);
@@ -142,7 +141,7 @@ public class MulliganView : MonoBehaviour {
         return props;
     }
 
-    private void MakeCardSwappable(CardView card, int indexInHand) {
+    void MakeCardSwappable(CardView card, int indexInHand) {
         card.IsInteractive = true;
 
         card.OnClickBegin = () => {
@@ -154,7 +153,7 @@ public class MulliganView : MonoBehaviour {
         };
     }
 
-    private void MakeCardNonSwappable(CardView card) {
+    void MakeCardNonSwappable(CardView card) {
         card.IsInteractive = false;
     }
 }

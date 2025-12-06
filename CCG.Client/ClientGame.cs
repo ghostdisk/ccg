@@ -38,10 +38,11 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
         return card;
     }
 
-    public virtual void RevealCard(CardInfo cardInfo) {
+    public virtual Card RevealCard(CardInfo cardInfo) {
         Card card = GetCard(cardInfo.cardId);
         card.prototype = CardDatabase.CardPrototypes[cardInfo.cardPrototypeId];
         card.strength = card.prototype.initial_strength;
+        return card;
     }
 
     public bool HandleMessage(S2CMessage message) {
@@ -62,6 +63,9 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
                 foreach (CardInfo cardInfo in cardInfoMessage.cardInfos) {
                     RevealCard(cardInfo);
                 }
+                return true;
+            case S2CMainPhaseStart mainPhaseStart:
+                S2CMainPhaseStartHandler(mainPhaseStart);
                 return true;
             default:
                 return false;
@@ -86,7 +90,9 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
 
     protected virtual void S2CMulliganResultHandler(S2CMulliganResult mulliganResult) {
         var player = GetPlayer(mulliganResult.player);
-        player.hand[mulliganResult.indexInHand] = GetCard(mulliganResult.newCardId);
+        int indexInHand = player.hand.FindIndex(card => card.card_id == mulliganResult.oldCardId);
+
+        player.hand[indexInHand] = GetCard(mulliganResult.newCardId);
         player.mulligansRemaining = mulliganResult.mulligansRemaining;
     }
 
@@ -94,6 +100,9 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
     }
 
     protected virtual void S2CDoneWithMulliganResultHandler(S2CDoneWithMulliganResult doneWithMulliganResult) {
+    }
+
+    protected virtual void S2CMainPhaseStartHandler(S2CMainPhaseStart mainPhaseStart) {
     }
 
 }

@@ -49,10 +49,9 @@ public class GameView : MonoBehaviour {
     }
 
     public void Init(ClientGame game) {
-        boardView.Init(this);
+        boardView.Init(this,game.myPlayer.index == 1);
         myViews.hand.Init(this, game.myPlayer.index);
         opponentViews.hand.Init(this, game.myPlayer.opponent.index);
-        boardView.Init(this);
         blindStageView.Init(this);
         playCardView.Init(this);
     }
