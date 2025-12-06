@@ -25,6 +25,7 @@ public class GameView : MonoBehaviour {
     public PlayerViews opponentViews;
     public MulliganView mulliganView;
     public BoardView boardView;
+    public PlayCardView playCardView;
 
     [Header("Menu UI")]
     public GameObject menuUiRoot;

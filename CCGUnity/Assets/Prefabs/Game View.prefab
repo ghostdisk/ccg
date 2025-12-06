@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 19454328258651361}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.151, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 4, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -646,6 +646,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1598437292083991283}
   m_CullTransparentMesh: 1
+--- !u!1 &1690455800693961521
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1366050032426997505}
+  - component: {fileID: 7697629137398598586}
+  m_Layer: 0
+  m_Name: Play Card View
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1366050032426997505
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1690455800693961521}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3186356412220105790}
+  m_Father: {fileID: 4739339094092815700}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7697629137398598586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1690455800693961521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cb4c648467ea70459c70e47f10e0ca6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayCardView
+  playedCardPosition: {fileID: 3186356412220105790}
 --- !u!1 &1764558227541726927
 GameObject:
   m_ObjectHideFlags: 0
@@ -937,8 +983,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1366050032426997505}
   - {fileID: 3712332717950691184}
-  - {fileID: 3186356412220105790}
   - {fileID: 6016734911703194323}
   - {fileID: 8126988989381206083}
   - {fileID: 1968968062774955565}
@@ -974,6 +1020,7 @@ MonoBehaviour:
     deck: {fileID: 8363649847336252838}
   mulliganView: {fileID: 5470730131843453793}
   boardView: {fileID: 767895545476800599}
+  playCardView: {fileID: 7697629137398598586}
   menuUiRoot: {fileID: 1598437292083991283}
   connectionStateText: {fileID: 5441691878207815897}
   matchmakingPanel: {fileID: 299407210938237680}
@@ -1439,7 +1486,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5174913031000059929}
-  m_Father: {fileID: 4739339094092815700}
+  m_Father: {fileID: 1366050032426997505}
   m_LocalEulerAnglesHint: {x: 0, y: -2.477, z: 0}
 --- !u!1 &4834756296899586431
 GameObject:
@@ -2517,7 +2564,7 @@ Transform:
   m_GameObject: {fileID: 8612219973225796550}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3, y: 2.91, z: -0.078}
+  m_LocalPosition: {x: 3, y: 2.98, z: -0.078}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2543,7 +2590,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 0.1, z: 1}
+  m_Size: {x: 4, y: 0.1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &6962597660736085933
 MonoBehaviour:
@@ -7681,6 +7728,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4076142393384488229, guid: 70b91937eaa749d4aad8d918d260c74b, type: 3}
+      propertyPath: target
+      value: 
+      objectReference: {fileID: 6962597660736085933}
     - target: {fileID: 4076142393384488229, guid: 70b91937eaa749d4aad8d918d260c74b, type: 3}
       propertyPath: handTarget
       value: 

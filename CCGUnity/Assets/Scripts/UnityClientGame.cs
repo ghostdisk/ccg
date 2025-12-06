@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using UnityEngine.Assertions.Must;
 
 public class UnityClientGame : ClientGame {
     private GameView G;
@@ -30,6 +31,7 @@ public class UnityClientGame : ClientGame {
                 DeckView deckView = G.GetPlayerViews(player).deck;
                 UnityCard card = (UnityCard)GetCard(mulliganResult.newCardId);
 
+                card.view.indexInHand = mulliganResult.indexInHand;
                 card.view.SetTarget(deckView.GetTransformProps());
                 card.view.JumpToTarget();
 
@@ -40,21 +42,67 @@ public class UnityClientGame : ClientGame {
         }
     }
 
-    IEnumerable<Target> BlindPhase_AllowedTargetsFunc(CardView card) =>
-        G.boardView.fieldTargets
+    void BlindPhase_BeginPlayingCard(CardView card, bool fromDrag, bool allowHand, Action cancelAction) {
+        G.myViews.hand.RemoveCard(card, true);
+
+        List<Target> targets = G.boardView.fieldTargets
             .Cast<Target>()
-            .Where(target => CheckCanPlayerPlayCardsOnField(myPlayer, target.position));
+            .Where(target => CheckCanPlayerPlayCardsOnField(myPlayer, target.position))
+            .ToList();
 
-    void BlindPhase_CardPlayCallback(CardView cardView, Target target) {
+        if (allowHand) {
+            targets.Add(G.myViews.hand.target);
+        }
+
+        G.playCardView.Activate(card, fromDrag, targets, (CardView cardView, Target target) => {
+            Target.DeactivateAll();
+            if (target) {
+                BlindPhase_FinishPlayingCard(cardView, target);
+            }
+            else {
+                cancelAction();
+            }
+        });
+    }
+
+    void BlindPhase_RemoveFromBoard(CardView cardView) {
+        UnityCard card = cardView.card;
+        if (card.position.column >= 0 && card.position.row >= 0) {
+            board[card.position.column, card.position.row].card = null;
+        }
+        card.position = new Position { column = -1, row = -1 };
+    }
+
+    void BlindPhase_AddToBoard(CardView cardView, Position position) {
+        board[position.column, position.row].card = cardView.card;
+        cardView.card.position = position;
+
+        cardView.SetTarget(new TransformProps(G.boardView.GetTarget(position).transform));
+
+        cardView.ClearCallbacks();
+        cardView.IsInteractive = true;
+
+        cardView.OnClickBegin = () => {
+            Position returnPosition = cardView.card.position;
+            Debug.Log($"return pos is {returnPosition.column} {returnPosition.row}");
+            BlindPhase_RemoveFromBoard(cardView);
+            Action cancelAction = () => BlindPhase_AddToBoard(cardView, returnPosition);
+            BlindPhase_BeginPlayingCard(cardView, true, true, cancelAction);
+        };
+    }
+
+    void BlindPhase_FinishPlayingCard(CardView cardView, Target target) {
         Card card = cardView.card;
-        board[target.position.column, target.position.row].card = card;
-
         HandView handView = G.myViews.hand;
-        handView.RemoveCard(cardView);
-        handView.AllowPlayingFromHand(BlindPhase_AllowedTargetsFunc, BlindPhase_CardPlayCallback);
 
-        cardView.SetTarget(new TransformProps(target.transform));
-        cardView.IsInteractive = false;
+        handView.IsInteractive = true;
+
+        if (target.position.column >= 0 && target.position.row >= 0) {
+            BlindPhase_AddToBoard(cardView, target.position);
+        }
+        else {
+            handView.AddCard(cardView);
+        }
     }
 
     protected override void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
@@ -63,15 +111,19 @@ public class UnityClientGame : ClientGame {
 
             List<CardView> handCards = G.mulliganView.Deactivate();
 
-            await Task.WhenAll(handCards.Select(async (card, index) => {
-                await Task.Delay(index * 25);
+            await Task.WhenAll(handCards.Select(async (card, indexInhand) => {
+                await Task.Delay(indexInhand * 25);
+                card.indexInHand = indexInhand;
                 handView.AddCard(card);
                 handView.UpdateCardsPositions();
             }).ToArray());
 
             await Task.Delay(200);
 
-            handView.AllowPlayingFromHand(BlindPhase_AllowedTargetsFunc, BlindPhase_CardPlayCallback);
+            handView.AllowPlayingFromHand((CardView cardView, bool fromDrag) => {
+                Action cancelAction = () => handView.AddCard(cardView);
+                BlindPhase_BeginPlayingCard(cardView, fromDrag, false, cancelAction);
+            });
         });
     }
 
@@ -81,7 +133,22 @@ public class UnityClientGame : ClientGame {
     }
 
     protected override void S2CGameStartedHandler(S2CGameStarted gameStarted) {
-        base.S2CGameStartedHandler(gameStarted);
+        foreach (CardInfo myHandInfo in gameStarted.myHandInfos) {
+            RevealCard(myHandInfo);
+        }
+
+        for (int cardIndex = 0; cardIndex < gameStarted.myHand.Count; cardIndex++) {
+            UnityCard card = (UnityCard)GetCard(gameStarted.myHand[cardIndex]);
+            card.view.indexInHand = cardIndex;
+            DrawCard(myPlayer, card);
+        }
+
+        for (int cardIndex = 0; cardIndex < gameStarted.opponentHand.Count; cardIndex++) {
+            UnityCard card = (UnityCard)GetCard(gameStarted.opponentHand[cardIndex]);
+            card.view.indexInHand = cardIndex;
+            DrawCard(opponentPlayer, card);
+        }
+
         Animate(async () => {
             Action doneAction = () => {
                 client.Send(new C2SDoneWithMulligan());

@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Splines;
 using System;
 using CCG.Shared;
+using System.Linq;
+
 
 
 #if UNITY_EDITOR
@@ -12,22 +14,23 @@ using UnityEditor;
 
 public class HandView : MonoBehaviour {
 
-    public Transform playedCardPosition;
-
-    List<CardView> cards = new();
-
+    [SerializeField] public Target target;
     [SerializeField] SplineContainer splineContainer;
-    [SerializeField] Target handTarget;
     [SerializeField] List<float> spacings;
     [SerializeField] List<float> cardRotation;
     [SerializeField] float maxUseSpace = 1.0f;
     [SerializeField] bool isOpponentHand = false;
 
+    List<CardView> cards = new();
+    CardView pressedCard;
+    Vector3 mouseDownPos;
+    Action<CardView, bool> cardPlayCallback; // args: card, fromDrag
+    bool _isInteractive;
+
 
     enum PlayCardState {
         None,
         CardHeldDown,
-        CardBeingPlayed,
     };
 
     public bool IsInteractive {
@@ -39,27 +42,30 @@ public class HandView : MonoBehaviour {
             OnIsInteractiveChanged();
         }
     }
-    bool _isInteractive;
-
-
-    PlayCardState playCardState = PlayCardState.None;
-    CardView cardPendingPlay;
-    Vector3 mouseDownPos;
-    bool cardPendingPlayFromDrag;
-    Func<CardView, IEnumerable<Target>> getAllowedTargetsCallback;
-    Action<CardView, Target> cardPlayCallback;
 
 
     public void AddCard(CardView card) {
+        if (card.indexInHand < 0) {
+            throw new Exception("CardView.indexInHand must be set before calling HandView.AddCard.");
+        }
+
         cards.Add(card);
+        AttachCardCallbacks(card);
+
         UpdateCardsPositions();
         card.ToggleShadowCast(!isOpponentHand);
     }
 
-    public void RemoveCard(CardView card) {
-        card.ClearCallbacks();
-        cards.Remove(card);
-        UpdateCardsPositions();
+    public void RemoveCard(CardView card, bool keepSpot) {
+        int index = cards.IndexOf(card);
+        if (index >= 0) {
+            card.ClearCallbacks();
+
+            if (keepSpot) cards[index] = null;
+            else cards.Remove(card);
+
+            UpdateCardsPositions();
+        }
     }
 
     public List<CardView> RemoveAllCards() {
@@ -72,42 +78,24 @@ public class HandView : MonoBehaviour {
     }
 
     void Update() {
-        switch (playCardState) {
-            case PlayCardState.CardHeldDown:
-                float zOffset = 0.35f;
-                Vector3 mouse = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
-                float add = (mouse.z - mouseDownPos.z) * 0.8f;
-                zOffset += add;
-                cardPendingPlay.childTarget.position = new Vector3(0, 0.25f, zOffset);
-                if (add > 0.3) {
-                    BeginPlayingCard(true);
-                }
-                break;
-            case PlayCardState.CardBeingPlayed:
-                if (Input.GetKeyDown(KeyCode.Escape)) {
-                    CancelPlayingCard();
-                }
-                if (Input.GetMouseButtonDown(1)) {
-                    CancelPlayingCard();
-                }
 
-                bool finish = cardPendingPlayFromDrag ? Input.GetMouseButtonUp(0) : Input.GetMouseButtonDown(0);
-                if (finish) {
-                    if (Target.hoveredTarget != null) {
-                        FinishPlayingCard(Target.hoveredTarget);
-                    }
-                    else {
-                        CancelPlayingCard();
-                    }
-                }
-                break;
+        if (pressedCard) {
+            float zOffset = 0.35f;
+            Vector3 mouse = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
+            float add = (mouse.z - mouseDownPos.z) * 0.8f;
+            zOffset += add;
+            pressedCard.childTarget.position = new Vector3(0, 0.25f, zOffset);
+            if (add > 0.3) {
+                BeginPlayingCard(true);
+            }
         }
     }
 
-    public TransformProps[] GetCardTransformProps() {
+    TransformProps[] GetCardTransformProps() {
+        int cardsCount = cards.Max(card => card ? card.indexInHand : -1) + 1;
         TransformProps[] props = new TransformProps[cards.Count];
 
-        if (cards.Count > 0) {
+        if (cardsCount > 0) {
             float cardSpacing = 0;
             if (cards.Count >= spacings.Count)
                 cardSpacing = maxUseSpace / cards.Count;
@@ -137,71 +125,47 @@ public class HandView : MonoBehaviour {
 
     public void UpdateCardsPositions() {
         TransformProps[] props = GetCardTransformProps();
-        for (int i = 0; i < cards.Count; i++) {
-            cards[i].SetTarget(props[i]);
-        }
+        foreach (CardView card in cards)
+            card?.SetTarget(props[card.indexInHand]);
     }
 
-    public void AllowPlayingFromHand(Func<CardView, IEnumerable<Target>> getAllowedTargetsCallback, Action<CardView, Target> cardPlayCallback) {
+    public void AllowPlayingFromHand(Action<CardView, bool> cardPlayCallback) {
         IsInteractive = true;
-        this.getAllowedTargetsCallback = getAllowedTargetsCallback;
         this.cardPlayCallback = cardPlayCallback;
+    }
 
-        foreach (CardView card in cards) {
-            card.IsInteractive = true;
+    void AttachCardCallbacks(CardView card) {
+        card.IsInteractive = true;
 
-            card.OnClickBegin = () => {
-                IsInteractive = false;
-                cardPendingPlay = card;
-                mouseDownPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
-                playCardState = PlayCardState.CardHeldDown;
-            };
+        card.OnClickBegin = () => {
+            IsInteractive = false;
+            pressedCard = card;
+            mouseDownPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
+        };
 
-            card.OnClickEnd = (bool wasDown, bool isHover) => {
-                if (playCardState == PlayCardState.CardHeldDown && isHover)
-                    BeginPlayingCard(false);
-            };
+        card.OnClickEnd = (bool wasDown, bool isHover) => {
+            if (pressedCard && isHover)
+                BeginPlayingCard(false);
+        };
 
-            card.OnHoverChanged = (bool hover) => {
-                card.childTarget.position = hover && IsInteractive ? new Vector3(0, 0.25f, 0.35f) : Vector3.zero;
-            };
-        }
+        card.OnHoverChanged = (bool hover) => {
+            card.childTarget.position = hover && IsInteractive ? new Vector3(0, 0.25f, 0.35f) : Vector3.zero;
+        };
     }
 
     void BeginPlayingCard(bool fromDrag) {
-        cardPendingPlayFromDrag = fromDrag;
-        cardPendingPlay.SetTarget(new TransformProps(playedCardPosition));
-        cardPendingPlay.childTarget.position = Vector3.zero;
-        playCardState = PlayCardState.CardBeingPlayed;
+        pressedCard.childTarget.position = Vector3.zero;
 
-        foreach (Target target in getAllowedTargetsCallback(cardPendingPlay))
-            target.Activate();
-    }
+        CardView playedCard = pressedCard;
+        pressedCard = null;
 
-    void FinishPlayingCard(Target target) {
-        CardView card = cardPendingPlay;
-        cardPendingPlay = null;
-
-        Target.DeactivateAll();
-        UpdateCardsPositions();
-
-        cardPlayCallback(card, target);
-    }
-
-    void CancelPlayingCard() {
-        IsInteractive = true;
-        playCardState = PlayCardState.None;
-        if (cardPendingPlay) {
-            cardPendingPlay.childTarget.position = Vector3.zero;
-            cardPendingPlay = null;
-        }
-        Target.DeactivateAll();
-        UpdateCardsPositions();
+        cardPlayCallback(playedCard, fromDrag);
     }
 
     void OnIsInteractiveChanged() {
         foreach (CardView card in cards)
-            card.IsInteractive = IsInteractive;
+            if (card)
+                card.IsInteractive = IsInteractive;
     }
 
 }

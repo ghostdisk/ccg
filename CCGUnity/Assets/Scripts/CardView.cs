@@ -18,6 +18,7 @@ public class CardView : MonoBehaviour {
 
     TransformProps target;
     public TransformProps childTarget;
+    public int indexInHand = -1;
 
     Material material;
     Material artMaterial;
@@ -128,6 +129,7 @@ public class CardView : MonoBehaviour {
     }
 
     public void ClearCallbacks() {
+        IsInteractive = false;
         OnClickBegin = null;
         OnClickEnd = null;
         OnHoverChanged = null;

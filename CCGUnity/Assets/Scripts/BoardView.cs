@@ -7,6 +7,10 @@ public class BoardView : MonoBehaviour {
 
     [SerializeField] private Target fieldTargetPrefab;
 
+    public Target GetTarget(Position position) {
+        return fieldTargets[position.column, position.row];
+    }
+
     void Awake() {
         fieldTargets = new Target[GameRules.Columns, GameRules.Rows];
         for (int column = 0; column < GameRules.Columns; column++) {

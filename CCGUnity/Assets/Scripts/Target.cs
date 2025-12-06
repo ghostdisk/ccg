@@ -7,7 +7,7 @@ public class Target : MonoBehaviour {
     public static Target hoveredTarget = null;
     private static List<Target> targets = new();
 
-    public Position position;
+    public Position position = new Position { row = -1, column = -1 };
 
     [SerializeField] private Color normalColor;
     [SerializeField] private Color hoverColor;
