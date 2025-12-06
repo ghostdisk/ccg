@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using CCG.Shared;
 
 public class CardView : MonoBehaviour {
     public UnityCard card;
@@ -7,6 +8,7 @@ public class CardView : MonoBehaviour {
     public Action OnClickBegin;
     public Action<bool, bool> OnClickEnd; // args: wasDown, isHover
     public Action<bool> OnHoverChanged; // args: isHover
+    [NonSerialized] public int savedIndexInHand = -1;
 
     [SerializeField] float speed = 10.0f;
     [SerializeField] float hoverSpeed = 20.0f;
@@ -18,7 +20,6 @@ public class CardView : MonoBehaviour {
 
     TransformProps target;
     public TransformProps childTarget;
-    public int indexInHand = -1;
 
     Material material;
     Material artMaterial;

@@ -36,7 +36,7 @@ public class Game<TPlayer, TGame>
             return row >= GameRules.Rows - GameRules.HomeRows;
     }
 
-    protected bool CheckCanPlayerPlayCardsOnField(TPlayer player, Position position) {
+    protected bool CheckCanPlayerPlayCardsOnField(TPlayer player, BoardPosition position) {
         if (!CheckIsHomeRow(player, position.row))
             return false;
 

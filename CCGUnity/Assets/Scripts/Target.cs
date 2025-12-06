@@ -1,18 +1,21 @@
 using UnityEngine;
-using CCG.Shared;
 using System.Collections.Generic;
+using CCG.Shared;
 
 public class Target : MonoBehaviour {
 
-    public static Target hoveredTarget = null;
+    private static Target hoveredTarget = null;
     private static List<Target> targets = new();
 
-    public Position position = new Position { row = -1, column = -1 };
+    public CardLocation location;
 
     [SerializeField] private Color normalColor;
     [SerializeField] private Color hoverColor;
 
     private Material material;
+
+    public static CardLocation HoverLocation =>
+        hoveredTarget ? hoveredTarget.location : CardLocation.None;
 
     void Awake() {
         targets.Add(this);

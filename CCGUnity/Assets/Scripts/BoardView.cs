@@ -1,34 +1,31 @@
 using CCG.Shared;
 using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 
 public class BoardView : MonoBehaviour {
 
-    public Target[,] fieldTargets;
-
     [SerializeField] private Target fieldTargetPrefab;
+    GameView G;
 
-    public Target GetTarget(Position position) {
-        return fieldTargets[position.column, position.row];
-    }
+    public IEnumerable<Target> BoardTargets
+        => G.Targets.Values.Where(target => target.location.type == CardLocationType.Board);
 
-    void Awake() {
-        fieldTargets = new Target[GameRules.Columns, GameRules.Rows];
+    public void Init(GameView G) {
+        this.G = G;
         for (int column = 0; column < GameRules.Columns; column++) {
             for (int row = 0; row < GameRules.Rows; row++) {
                 Target fieldTarget = Instantiate(fieldTargetPrefab);
 
-                fieldTarget.position = new Position {
-                    column = column,
-                    row = row,
-                };
+                fieldTarget.location = CardLocation.Board(new BoardPosition { column = column, row = row });
 
                 fieldTarget.transform.SetParent(transform);
                 fieldTarget.transform.localPosition = new Vector3(column, 0, row);
                 fieldTarget.Deactivate();
 
-                fieldTargets[column, row] = fieldTarget;
+                G.Targets[fieldTarget.location] = fieldTarget;
             }
         }
-        
     }
+
 }

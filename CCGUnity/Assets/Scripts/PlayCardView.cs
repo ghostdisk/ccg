@@ -1,41 +1,49 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using CCG.Shared;
 
 public class PlayCardView : MonoBehaviour {
     [SerializeField] Transform playedCardPosition;
 
+    GameView G;
     CardView card;
     bool fromDrag;
-    Action<CardView, Target> callback;
+    Action<CardView, CardLocation> callback;
 
-    public void Activate(CardView card, bool fromDrag, IEnumerable<Target> targets, Action<CardView, Target> callback) {
+    public void Init(GameView G) {
+        this.G = G;
+    }
+
+    public void Activate(CardView card, bool fromDrag, IEnumerable<CardLocation> targetLocations, Action<CardView, CardLocation> callback) {
         this.card = card;
         this.fromDrag = fromDrag;
         this.callback = callback;
         card.SetTarget(new TransformProps(playedCardPosition));
 
-        foreach (Target target in targets) {
-            target.Activate();
+        foreach (CardLocation location in targetLocations) {
+            G.Targets[location].Activate();
         }
     }
+
 
     void Update() {
         if (card) {
             if (Input.GetKeyDown(KeyCode.Escape))
-                Finish(null);
+                Finish(CardLocation.None);
             if (Input.GetMouseButtonDown(1))
-                Finish(null);
+                Finish(CardLocation.None);
 
             bool finish = fromDrag ? Input.GetMouseButtonUp(0) : Input.GetMouseButtonDown(0);
             if (finish)
-                Finish(Target.hoveredTarget);
+                Finish(Target.HoverLocation);
         }
     }
 
-    void Finish(Target target) {
+    void Finish(CardLocation location) {
         CardView card = this.card;
         this.card = null;
-        callback(card, target);
+        Target.DeactivateAll();
+        callback(card, location);
     }
 }

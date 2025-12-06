@@ -36,7 +36,7 @@ public class C2SPong : C2SMessage {
 [MessagePackObject]
 public struct C2S_BlindStage_PlayCard {
     [Key(0)] public int cardID;
-    [Key(1)] public Position position;
+    [Key(1)] public BoardPosition position;
 };
 
 [MessagePackObject]

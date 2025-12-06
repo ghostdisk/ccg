@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using TMPro;
 using UnityEngine.UI;
+using CCG.Shared;
 
 public class MulliganView : MonoBehaviour {
 
@@ -123,7 +124,8 @@ public class MulliganView : MonoBehaviour {
         }
     }
 
-    public void AddReplacedCard(CardView card, int indexInHand) {
+    public void AddReplacedCard(CardView card) {
+        int indexInHand = card.card.location.val1;
         card.SetTarget(new TransformProps(positions[indexInHand]));
         card.gameObject.SetActive(true);
         cards[indexInHand] = card;

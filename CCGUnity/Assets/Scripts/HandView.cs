@@ -5,8 +5,6 @@ using System;
 using CCG.Shared;
 using System.Linq;
 
-
-
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -27,12 +25,6 @@ public class HandView : MonoBehaviour {
     Action<CardView, bool> cardPlayCallback; // args: card, fromDrag
     bool _isInteractive;
 
-
-    enum PlayCardState {
-        None,
-        CardHeldDown,
-    };
-
     public bool IsInteractive {
         get {
             return _isInteractive;
@@ -43,13 +35,24 @@ public class HandView : MonoBehaviour {
         }
     }
 
+    public void Init(GameView G, int playerIndex) {
+        if (target) {
+            target.location = CardLocation.Hand(playerIndex, -1);
+            G.Targets[target.location] = target;
+        }
+    }
 
     public void AddCard(CardView card) {
-        if (card.indexInHand < 0) {
-            throw new Exception("CardView.indexInHand must be set before calling HandView.AddCard.");
+        if (card.card.location.type != CardLocationType.Hand) {
+            throw new Exception("Card location must be set before calling HandView.AddCard.");
         }
 
+        if (card.card.location.IndexInHand < 0)
+            card.card.location.IndexInHand = card.savedIndexInHand;
+
         cards.Add(card);
+        card.savedIndexInHand = card.card.location.IndexInHand;
+
         AttachCardCallbacks(card);
 
         UpdateCardsPositions();
@@ -66,8 +69,9 @@ public class HandView : MonoBehaviour {
     }
 
     public List<CardView> RemoveAllCards() {
-        foreach (CardView card in cards)
+        foreach (CardView card in cards) {
             card.ClearCallbacks();
+        }
 
         List<CardView> allCards = cards;
         cards = new List<CardView>();
@@ -75,7 +79,6 @@ public class HandView : MonoBehaviour {
     }
 
     void Update() {
-
         if (pressedCard) {
             float zOffset = 0.35f;
             Vector3 mouse = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
@@ -89,7 +92,7 @@ public class HandView : MonoBehaviour {
     }
 
     TransformProps[] GetCardTransformProps() {
-        int cardsCount = cards.Count > 0 ? (cards.Max(card => card ? card.indexInHand : -1) + 1) : 0;
+        int cardsCount = cards.Count > 0 ? (cards.Max(card => card.card.location.IndexInHand) + 1) : 0;
         TransformProps[] props = new TransformProps[cardsCount];
 
         if (cardsCount > 0) {
@@ -123,7 +126,7 @@ public class HandView : MonoBehaviour {
     public void UpdateCardsPositions() {
         TransformProps[] props = GetCardTransformProps();
         foreach (CardView card in cards)
-            card?.SetTarget(props[card.indexInHand]);
+            card.SetTarget(props[card.card.location.IndexInHand]);
     }
 
     public void AllowPlayingFromHand(Action<CardView, bool> cardPlayCallback) {
@@ -161,8 +164,7 @@ public class HandView : MonoBehaviour {
 
     void OnIsInteractiveChanged() {
         foreach (CardView card in cards)
-            if (card)
-                card.IsInteractive = IsInteractive;
+            card.IsInteractive = IsInteractive;
     }
 
 }

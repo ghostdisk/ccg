@@ -723,6 +723,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 3787166815726536549}
   m_LocalEulerAnglesHint: {x: 0, y: -1.631, z: 0}
+--- !u!1 &1799363475814545587
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4521106956458296044}
+  - component: {fileID: 7649944409175468480}
+  m_Layer: 0
+  m_Name: Blind Stage View
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4521106956458296044
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1799363475814545587}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 4739339094092815700}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7649944409175468480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1799363475814545587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b78075917dee6374eb77b5486a914bcf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BlindStageView
 --- !u!1 &1981803291546240941
 GameObject:
   m_ObjectHideFlags: 0
@@ -983,9 +1027,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 6016734911703194323}
   - {fileID: 1366050032426997505}
   - {fileID: 3712332717950691184}
-  - {fileID: 6016734911703194323}
   - {fileID: 8126988989381206083}
   - {fileID: 1968968062774955565}
   - {fileID: 8145996485461939897}
@@ -993,6 +1037,7 @@ Transform:
   - {fileID: 2764957434581706335}
   - {fileID: 3787166815726536549}
   - {fileID: 1130494680068465182}
+  - {fileID: 4521106956458296044}
   - {fileID: 4975477101206178618}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1021,6 +1066,7 @@ MonoBehaviour:
   mulliganView: {fileID: 5470730131843453793}
   boardView: {fileID: 767895545476800599}
   playCardView: {fileID: 7697629137398598586}
+  blindStageView: {fileID: 7649944409175468480}
   menuUiRoot: {fileID: 1598437292083991283}
   connectionStateText: {fileID: 5441691878207815897}
   matchmakingPanel: {fileID: 299407210938237680}

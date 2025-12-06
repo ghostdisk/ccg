@@ -13,7 +13,6 @@ public class PlayerViews {
 };
 
 public class GameView : MonoBehaviour {
-
     public UnityClient client;
 
     [Header("Prefabs")]
@@ -26,6 +25,7 @@ public class GameView : MonoBehaviour {
     public MulliganView mulliganView;
     public BoardView boardView;
     public PlayCardView playCardView;
+    public BlindStageView blindStageView;
 
     [Header("Menu UI")]
     public GameObject menuUiRoot;
@@ -34,6 +34,8 @@ public class GameView : MonoBehaviour {
     public TextMeshProUGUI matchmakingText;
     public TextMeshProUGUI matchmakingButtonText;
     public Button matchmakingButton;
+
+    public Dictionary<CardLocation, Target> Targets = new();
 
     void Start() {
         menuUiRoot.SetActive(true);
@@ -44,6 +46,15 @@ public class GameView : MonoBehaviour {
         client = new UnityClient();
         client.G = this;
         client.Connect();
+    }
+
+    public void Init(ClientGame game) {
+        boardView.Init(this);
+        myViews.hand.Init(this, game.myPlayer.index);
+        opponentViews.hand.Init(this, game.myPlayer.opponent.index);
+        boardView.Init(this);
+        blindStageView.Init(this);
+        playCardView.Init(this);
     }
 
     void Update() {
