@@ -2604,8 +2604,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0554f1531e4b9f449783f3a6ed62d7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Target
-  normalColor: {r: 0.7764706, g: 1, b: 0.64705884, a: 0.54509807}
-  hoverColor: {r: 0.7764706, g: 1, b: 0.64705884, a: 0.74509805}
+  normalColor: {r: 0.7764706, g: 1, b: 0.64705884, a: 0.2901961}
+  hoverColor: {r: 0.7764706, g: 1, b: 0.64705884, a: 0.37254903}
 --- !u!1 &8628869026303735668
 GameObject:
   m_ObjectHideFlags: 0

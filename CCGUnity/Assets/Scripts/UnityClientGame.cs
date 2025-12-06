@@ -43,7 +43,7 @@ public class UnityClientGame : ClientGame {
     }
 
     void BlindPhase_BeginPlayingCard(CardView card, bool fromDrag, bool allowHand, Action cancelAction) {
-        G.myViews.hand.RemoveCard(card, true);
+        G.myViews.hand.RemoveCard(card);
 
         List<Target> targets = G.boardView.fieldTargets
             .Cast<Target>()
@@ -56,6 +56,8 @@ public class UnityClientGame : ClientGame {
 
         G.playCardView.Activate(card, fromDrag, targets, (CardView cardView, Target target) => {
             Target.DeactivateAll();
+            G.myViews.hand.IsInteractive = true;
+
             if (target) {
                 BlindPhase_FinishPlayingCard(cardView, target);
             }
@@ -84,7 +86,6 @@ public class UnityClientGame : ClientGame {
 
         cardView.OnClickBegin = () => {
             Position returnPosition = cardView.card.position;
-            Debug.Log($"return pos is {returnPosition.column} {returnPosition.row}");
             BlindPhase_RemoveFromBoard(cardView);
             Action cancelAction = () => BlindPhase_AddToBoard(cardView, returnPosition);
             BlindPhase_BeginPlayingCard(cardView, true, true, cancelAction);
@@ -94,8 +95,6 @@ public class UnityClientGame : ClientGame {
     void BlindPhase_FinishPlayingCard(CardView cardView, Target target) {
         Card card = cardView.card;
         HandView handView = G.myViews.hand;
-
-        handView.IsInteractive = true;
 
         if (target.position.column >= 0 && target.position.row >= 0) {
             BlindPhase_AddToBoard(cardView, target.position);

@@ -56,14 +56,11 @@ public class HandView : MonoBehaviour {
         card.ToggleShadowCast(!isOpponentHand);
     }
 
-    public void RemoveCard(CardView card, bool keepSpot) {
+    public void RemoveCard(CardView card) {
         int index = cards.IndexOf(card);
         if (index >= 0) {
             card.ClearCallbacks();
-
-            if (keepSpot) cards[index] = null;
-            else cards.Remove(card);
-
+            cards.Remove(card);
             UpdateCardsPositions();
         }
     }
@@ -92,21 +89,21 @@ public class HandView : MonoBehaviour {
     }
 
     TransformProps[] GetCardTransformProps() {
-        int cardsCount = cards.Max(card => card ? card.indexInHand : -1) + 1;
-        TransformProps[] props = new TransformProps[cards.Count];
+        int cardsCount = cards.Count > 0 ? (cards.Max(card => card ? card.indexInHand : -1) + 1) : 0;
+        TransformProps[] props = new TransformProps[cardsCount];
 
         if (cardsCount > 0) {
             float cardSpacing = 0;
-            if (cards.Count >= spacings.Count)
-                cardSpacing = maxUseSpace / cards.Count;
+            if (cardsCount >= spacings.Count)
+                cardSpacing = maxUseSpace / cardsCount;
             else
-                cardSpacing = spacings[cards.Count];
+                cardSpacing = spacings[cardsCount];
 
-            float firstCardPosition = 0.5f - (cards.Count - 1) * cardSpacing / 2.0f;
+            float firstCardPosition = 0.5f - (cardsCount - 1) * cardSpacing / 2.0f;
 
             Spline spline = splineContainer.Spline;
 
-            for (int i = 0; i < cards.Count; i++) {
+            for (int i = 0; i < cardsCount; i++) {
                 float t = firstCardPosition + i * cardSpacing;
 
                 Vector3 forward = spline.EvaluateTangent(t);
@@ -114,7 +111,7 @@ public class HandView : MonoBehaviour {
                 Vector3 position = splineContainer.transform.TransformPoint(spline.EvaluatePosition(t));
 
                 Quaternion rotation = Quaternion.LookRotation(up, Vector3.Cross(up, forward).normalized) * splineContainer.transform.rotation;
-                rotation = Quaternion.Euler(0, 0, cardRotation[cards.Count <= cardRotation.Count ? cards.Count - 1 : cardRotation.Count - 1]) * rotation;
+                rotation = Quaternion.Euler(0, 0, cardRotation[cardsCount <= cardRotation.Count ? cardsCount - 1 : cardRotation.Count - 1]) * rotation;
 
                 props[i] = new TransformProps(position, rotation);
             }
