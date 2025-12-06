@@ -1,57 +1,46 @@
 ﻿using System;
 using UnityEngine;
 
-[Flags]
-public enum CardViewInteractionMode {
-    None = 0,
-    Click = 1,
-    DragFromHand = 2,
-    DragFromBoard = 3,
-};
-
 public class CardView : MonoBehaviour {
     public UnityCard card;
-    public Action onClick;
-    public Action onDragOutOfHand;
+
+    public Action OnClickBegin;
+    public Action<bool, bool> OnClickEnd; // args: wasDown, isHover
+    public Action<bool> OnHoverChanged; // args: isHover
 
     [SerializeField] float speed = 10.0f;
     [SerializeField] float hoverSpeed = 20.0f;
 
-    [SerializeField] private Transform child;
-    [SerializeField] private MeshRenderer meshRenderer;
-    [SerializeField] private Color emissionColor;
-    [SerializeField] private float emissionStrength = 0.0f;
+    [SerializeField] Transform child;
+    [SerializeField] MeshRenderer meshRenderer;
+    [SerializeField] Color emissionColor;
+    [SerializeField] float emissionStrength = 0.0f;
 
-    private TransformProps target;
-    private TransformProps childTarget;
+    TransformProps target;
+    public TransformProps childTarget;
 
-    private Material material;
-    private Material artMaterial;
-    private float currentEmissionStrength = 0.0f;
-    private float targetEmissionStrength = 0.0f;
+    Material material;
+    Material artMaterial;
+    float currentEmissionStrength = 0.0f;
+    float targetEmissionStrength = 0.0f;
 
-    private bool isHovered = false;
-    private bool isMouseDown = false;
-    private Vector3 mouseDownPos;
+    bool isHovered = false;
+    bool isMouseDown = false;
 
-    private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
-    private static CardView downCard = null;
+    static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
-    public CardViewInteractionMode InteractionMode {
+    public bool IsInteractive {
         get {
-            return _interactionMode;
+            return _isInteractive;
         }
         set {
-            _interactionMode = value;
-            if ((_interactionMode & CardViewInteractionMode.Click) == 0) {
-                onClick = null;
-            }
+            _isInteractive = value;
             UpdateHoverState();
         }
     }
 
 
-    private CardViewInteractionMode _interactionMode;
+    bool _isInteractive = false;
 
     void Awake() {
         material = Instantiate(meshRenderer.materials[0]);
@@ -63,99 +52,53 @@ public class CardView : MonoBehaviour {
 
         target = new TransformProps(Vector3.zero);
         childTarget = new TransformProps(Vector3.zero);
+        IsInteractive = false;
 
-        InteractionMode = CardViewInteractionMode.None;
-
-        OnCardUpdate();
+        OnCardInfoChanged();
     }
 
     void Update() {
-        if (currentEmissionStrength != targetEmissionStrength) {
-            currentEmissionStrength = Mathf.Lerp(currentEmissionStrength, targetEmissionStrength, hoverSpeed * Time.deltaTime);
+        // TODO: Fix the tweening situation
+        currentEmissionStrength = Mathf.Lerp(currentEmissionStrength, targetEmissionStrength, hoverSpeed * Time.deltaTime);
+        child.localPosition = Vector3.Lerp(child.localPosition, childTarget.position, hoverSpeed * Time.deltaTime);
+        child.localRotation = Quaternion.Lerp(child.localRotation, childTarget.rotation, hoverSpeed * Time.deltaTime);
+        child.localScale = Vector3.Lerp(child.localScale, childTarget.scale, hoverSpeed * Time.deltaTime);
+        material.SetColor(EmissionColor, emissionColor * currentEmissionStrength);
+        Move(Time.deltaTime * speed);
 
-            child.localPosition = Vector3.Lerp(child.localPosition, childTarget.position, hoverSpeed * Time.deltaTime);
-            child.localRotation = Quaternion.Lerp(child.localRotation, childTarget.rotation, hoverSpeed * Time.deltaTime);
-            child.localScale = Vector3.Lerp(child.localScale, childTarget.scale, hoverSpeed * Time.deltaTime);
-
-            material.SetColor(EmissionColor, emissionColor * currentEmissionStrength);
-        }
-
-        if (isMouseDown) {
+        if (OnClickEnd != null && (isMouseDown || isHovered)) {
             if (Input.GetMouseButtonUp(0)) {
+                OnClickEnd(isMouseDown, isHovered);
                 isMouseDown = false;
-                downCard = null;
-                if (isHovered) {
-                    if (onClick != null) {
-                        childTarget = new TransformProps(Vector3.zero);
-                        onClick();
-                    }
-                }
             }
-            UpdateHoverState();
-        }
-        else {
-            Move(Time.deltaTime * speed);
         }
     }
 
     void UpdateHoverState() {
-        bool interactive = (downCard == null || downCard == this) && (isHovered || isMouseDown);
-
-        if ((InteractionMode & CardViewInteractionMode.DragFromHand) != 0) {
-            if (interactive) {
-                float zOffset = 0.35f;
-                if (isMouseDown) {
-                    Vector3 mouse = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
-                    float add = (mouse.z - mouseDownPos.z) * 0.8f;
-                    zOffset += add;
-
-                    if (add > 0.3) {
-                        isMouseDown = false;
-                        downCard = null;
-                        childTarget = new TransformProps(Vector3.zero);
-                        onDragOutOfHand();
-                    }
-                    else {
-                        childTarget.position = new Vector3(0, 0.25f, zOffset);
-                    }
-                }
-                else {
-                    childTarget.position = new Vector3(0, 0.25f, zOffset);
-                }
-            }
-            else {
-                childTarget.position = Vector3.zero;
-            }
-        }
-
-        if (InteractionMode != CardViewInteractionMode.None && interactive) {
+        if (IsInteractive && (isHovered || isMouseDown)) {
             targetEmissionStrength = emissionStrength;
         }
         else {
-            // childTarget.scale = new Vector3(1,1,1);
             targetEmissionStrength = 0.0f;
         }
     }
 
-    private void OnMouseEnter() {
+    void OnMouseEnter() {
         isHovered = true;
+        if (IsInteractive && OnHoverChanged != null) OnHoverChanged(true);
         UpdateHoverState();
     }
 
-    private void OnMouseExit() {
+    void OnMouseExit() {
         isHovered = false;
+        if (IsInteractive && OnHoverChanged != null) OnHoverChanged(false);
         UpdateHoverState();
     }
 
-    private void OnMouseDown() {
-        if ((InteractionMode & CardViewInteractionMode.DragFromHand) != 0) {
+    void OnMouseDown() {
+        if (IsInteractive) {
             isMouseDown = true;
-            downCard = this;
-            mouseDownPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
-        }
-        else if ((InteractionMode & CardViewInteractionMode.Click) != 0) {
-            isMouseDown = true;
-            downCard = this;
+            if (OnClickBegin != null) OnClickBegin();
         }
     }
 
@@ -171,7 +114,7 @@ public class CardView : MonoBehaviour {
         meshRenderer.shadowCastingMode = cast ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.Off;
     }
 
-    public void OnCardUpdate() {
+    public void OnCardInfoChanged() {
         if (card != null) {
             //artMaterial.SetTexture("_BaseMap", GlobalRefs.Instance.cardArt[card.prototype.id]);
             artMaterial.mainTexture = GlobalRefs.Instance.cardArt[card.prototype.id];
@@ -182,6 +125,12 @@ public class CardView : MonoBehaviour {
         transform.position = Vector3.Lerp(transform.position, target.position, t);
         transform.rotation = Quaternion.Lerp(transform.rotation, target.rotation, t);
         transform.localScale = Vector3.Lerp(transform.localScale, target.scale, t);
+    }
+
+    public void ClearCallbacks() {
+        OnClickBegin = null;
+        OnClickEnd = null;
+        OnHoverChanged = null;
     }
 
 }

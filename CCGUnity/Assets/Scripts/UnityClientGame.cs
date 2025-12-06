@@ -54,8 +54,7 @@ public class UnityClientGame : ClientGame {
         handView.AllowPlayingFromHand(BlindPhase_AllowedTargetsFunc, BlindPhase_CardPlayCallback);
 
         cardView.SetTarget(new TransformProps(target.transform));
-        cardView.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromBoard;
-
+        cardView.IsInteractive = false;
     }
 
     protected override void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
@@ -145,7 +144,7 @@ public class UnityClientGame : ClientGame {
 
     public override void RevealCard(CardInfo cardInfo) {
         base.RevealCard(cardInfo);
-        ((UnityCard)GetCard(cardInfo.cardId)).view.OnCardUpdate();
+        ((UnityCard)GetCard(cardInfo.cardId)).view.OnCardInfoChanged();
     }
 }
 

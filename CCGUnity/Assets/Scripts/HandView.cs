@@ -2,28 +2,53 @@
 using UnityEngine;
 using UnityEngine.Splines;
 using System;
+using CCG.Shared;
+
 
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
 
+
 public class HandView : MonoBehaviour {
 
     public Transform playedCardPosition;
 
-    private List<CardView> cards = new();
+    List<CardView> cards = new();
 
-    [SerializeField] private SplineContainer splineContainer;
-    [SerializeField] private Target handTarget;
-    [SerializeField] private List<float> spacings;
-    [SerializeField] private List<float> cardRotation;
-    [SerializeField] private float maxUseSpace = 1.0f;
-    [SerializeField] private bool isOpponentHand = false;
+    [SerializeField] SplineContainer splineContainer;
+    [SerializeField] Target handTarget;
+    [SerializeField] List<float> spacings;
+    [SerializeField] List<float> cardRotation;
+    [SerializeField] float maxUseSpace = 1.0f;
+    [SerializeField] bool isOpponentHand = false;
 
-    private CardView cardPendingPlay;
-    private bool cardPendingPlayFromDrag;
-    private Func<CardView, IEnumerable<Target>> allowedTargetsFunc;
-    private Action<CardView, Target> cardPlayFunc;
+
+    enum PlayCardState {
+        None,
+        CardHeldDown,
+        CardBeingPlayed,
+    };
+
+    public bool IsInteractive {
+        get {
+            return _isInteractive;
+        }
+        set {
+            _isInteractive = value;
+            OnIsInteractiveChanged();
+        }
+    }
+    bool _isInteractive;
+
+
+    PlayCardState playCardState = PlayCardState.None;
+    CardView cardPendingPlay;
+    Vector3 mouseDownPos;
+    bool cardPendingPlayFromDrag;
+    Func<CardView, IEnumerable<Target>> getAllowedTargetsCallback;
+    Action<CardView, Target> cardPlayCallback;
+
 
     public void AddCard(CardView card) {
         cards.Add(card);
@@ -32,30 +57,50 @@ public class HandView : MonoBehaviour {
     }
 
     public void RemoveCard(CardView card) {
+        card.ClearCallbacks();
         cards.Remove(card);
         UpdateCardsPositions();
     }
 
     public List<CardView> RemoveAllCards() {
+        foreach (CardView card in cards)
+            card.ClearCallbacks();
+
         List<CardView> allCards = cards;
         cards = new List<CardView>();
         return allCards;
     }
 
     void Update() {
-        if (cardPendingPlay) {
-            if (Input.GetKeyDown(KeyCode.Escape)) {
-                CancelPlayingCard();
-            }
-            if (Input.GetMouseButtonDown(1)) {
-                CancelPlayingCard();
-            }
-            if (Input.GetMouseButtonUp(0) && cardPendingPlayFromDrag) {
-                FinishPlayingCard();
-            }
-            if (Input.GetMouseButtonDown(0) && !cardPendingPlayFromDrag) {
-                FinishPlayingCard();
-            }
+        switch (playCardState) {
+            case PlayCardState.CardHeldDown:
+                float zOffset = 0.35f;
+                Vector3 mouse = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
+                float add = (mouse.z - mouseDownPos.z) * 0.8f;
+                zOffset += add;
+                cardPendingPlay.childTarget.position = new Vector3(0, 0.25f, zOffset);
+                if (add > 0.3) {
+                    BeginPlayingCard(true);
+                }
+                break;
+            case PlayCardState.CardBeingPlayed:
+                if (Input.GetKeyDown(KeyCode.Escape)) {
+                    CancelPlayingCard();
+                }
+                if (Input.GetMouseButtonDown(1)) {
+                    CancelPlayingCard();
+                }
+
+                bool finish = cardPendingPlayFromDrag ? Input.GetMouseButtonUp(0) : Input.GetMouseButtonDown(0);
+                if (finish) {
+                    if (Target.hoveredTarget != null) {
+                        FinishPlayingCard(Target.hoveredTarget);
+                    }
+                    else {
+                        CancelPlayingCard();
+                    }
+                }
+                break;
         }
     }
 
@@ -97,58 +142,68 @@ public class HandView : MonoBehaviour {
         }
     }
 
-    void BeginPlayingCard(CardView cardToPlay, bool fromDrag) {
+    public void AllowPlayingFromHand(Func<CardView, IEnumerable<Target>> getAllowedTargetsCallback, Action<CardView, Target> cardPlayCallback) {
+        IsInteractive = true;
+        this.getAllowedTargetsCallback = getAllowedTargetsCallback;
+        this.cardPlayCallback = cardPlayCallback;
+
         foreach (CardView card in cards) {
-            card.InteractionMode = 0;
+            card.IsInteractive = true;
+
+            card.OnClickBegin = () => {
+                IsInteractive = false;
+                cardPendingPlay = card;
+                mouseDownPos = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, 5f));
+                playCardState = PlayCardState.CardHeldDown;
+            };
+
+            card.OnClickEnd = (bool wasDown, bool isHover) => {
+                if (playCardState == PlayCardState.CardHeldDown && isHover)
+                    BeginPlayingCard(false);
+            };
+
+            card.OnHoverChanged = (bool hover) => {
+                card.childTarget.position = hover && IsInteractive ? new Vector3(0, 0.25f, 0.35f) : Vector3.zero;
+            };
         }
+    }
 
+    void BeginPlayingCard(bool fromDrag) {
         cardPendingPlayFromDrag = fromDrag;
-        cardToPlay.SetTarget(new TransformProps(playedCardPosition));
-        cardToPlay.InteractionMode = 0;
-        cardPendingPlay = cardToPlay;
+        cardPendingPlay.SetTarget(new TransformProps(playedCardPosition));
+        cardPendingPlay.childTarget.position = Vector3.zero;
+        playCardState = PlayCardState.CardBeingPlayed;
 
-        foreach (Target target in allowedTargetsFunc(cardToPlay))
+        foreach (Target target in getAllowedTargetsCallback(cardPendingPlay))
             target.Activate();
     }
 
-    void FinishPlayingCard() {
-        if (Target.hoveredTarget != null) {
-            CardView card = cardPendingPlay;
-            cardPendingPlay = null;
+    void FinishPlayingCard(Target target) {
+        CardView card = cardPendingPlay;
+        cardPendingPlay = null;
 
-            Target target = Target.hoveredTarget;
-            Target.DeactivateAll();
+        Target.DeactivateAll();
+        UpdateCardsPositions();
 
-            UpdateCardsPositions();
-
-            cardPlayFunc(card, target);
-        }
-        else {
-            CancelPlayingCard();
-        }
+        cardPlayCallback(card, target);
     }
 
     void CancelPlayingCard() {
-        cardPendingPlay = null;
-        foreach (CardView card in cards) {
-            card.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromHand;
-            card.onClick = () => { BeginPlayingCard(card, false); };
-            card.onDragOutOfHand = () => { BeginPlayingCard(card, true); };
+        IsInteractive = true;
+        playCardState = PlayCardState.None;
+        if (cardPendingPlay) {
+            cardPendingPlay.childTarget.position = Vector3.zero;
+            cardPendingPlay = null;
         }
         Target.DeactivateAll();
         UpdateCardsPositions();
     }
 
-    public void AllowPlayingFromHand(Func<CardView, IEnumerable<Target>> allowedTargetsFunc, Action<CardView, Target> cardPlayFunc) {
-        this.allowedTargetsFunc = allowedTargetsFunc;
-        this.cardPlayFunc = cardPlayFunc;
-
-        foreach (CardView card in cards) {
-            card.InteractionMode = CardViewInteractionMode.Click | CardViewInteractionMode.DragFromHand;
-            card.onClick = () => { BeginPlayingCard(card, false); };
-            card.onDragOutOfHand = () => { BeginPlayingCard(card, true); };
-        }
+    void OnIsInteractiveChanged() {
+        foreach (CardView card in cards)
+            card.IsInteractive = IsInteractive;
     }
+
 }
 
 #if UNITY_EDITOR

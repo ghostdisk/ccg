@@ -141,17 +141,18 @@ public class MulliganView : MonoBehaviour {
     }
 
     private void MakeCardSwappable(CardView card, int indexInHand) {
-        card.InteractionMode = CardViewInteractionMode.Click;
-        card.onClick = () => {
+        card.IsInteractive = true;
+
+        card.OnClickBegin = () => {
             cardSwapAction(card);
             card.SetTarget(GetNextDiscardTransformProps());
             discardPile.Append(card);
             cards[indexInHand] = null;
-            card.InteractionMode = CardViewInteractionMode.None;
+            card.IsInteractive = false;
         };
     }
 
     private void MakeCardNonSwappable(CardView card) {
-        card.InteractionMode = CardViewInteractionMode.None;
+        card.IsInteractive = false;
     }
 }
