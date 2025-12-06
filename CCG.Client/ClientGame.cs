@@ -72,10 +72,6 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
         }
     }
 
-    protected virtual void DrawCard(ClientPlayer player, Card card) {
-        player.hand.Add(card);
-    }
-
     protected virtual void S2CGameStartedHandler(S2CGameStarted gameStarted) {
         foreach (CardInfo cardInfo in gameStarted.myHandInfos) {
             RevealCard(cardInfo);

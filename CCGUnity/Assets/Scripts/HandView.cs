@@ -136,7 +136,7 @@ public class HandView : MonoBehaviour {
     public void UpdateCardsPositions() {
         TransformProps[] props = GetCardTransformProps();
         foreach (CardView card in cards)
-            card.SetTarget(props[card.card.location.IndexInHand]);
+            card.SetTarget(props[card.card.location.IndexInHand], CardViewTweenMode.ExponentialDecay);
     }
 
     public void AllowPlayingFromHand(Action<CardView, bool> cardPlayCallback) {

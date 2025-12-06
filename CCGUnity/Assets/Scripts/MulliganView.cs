@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using System.Linq;
 using TMPro;
 using UnityEngine.UI;
-using CCG.Shared;
 
 public class MulliganView : MonoBehaviour {
 
@@ -24,15 +23,20 @@ public class MulliganView : MonoBehaviour {
     [SerializeField] TextMeshProUGUI infoText;
     [SerializeField] Button doneButton;
 
-    [Header("Misc")]
-    [SerializeField] ParticleSystem fog;
+    [Header("Discard Tween")]
     [SerializeField] float discardClimbPerCard = 0.2f;
     [SerializeField] float discardRandomRotation = 45.0f;
+    [SerializeField] AnimationCurve discardTweenEase;
+    [SerializeField] float discardFlipDuration = 0.3f;
+    [SerializeField] float discardTweenDuration = 0.3f;
+
+    [Header("Misc")]
+    [SerializeField] ParticleSystem fog;
 
     public bool IsActive { get; private set; }
 
-    public int mulligansRemaining;
-    public int confirmedMulligansRemaining;
+    [NonSerialized] public int mulligansRemaining;
+    [NonSerialized] public int confirmedMulligansRemaining;
 
     float discardY = 0;
     Action<CardView> cardSwapAction;
@@ -68,7 +72,7 @@ public class MulliganView : MonoBehaviour {
 
             await Task.WhenAll(cards.Select(async (card, index) => {
                 await Task.Delay(index * 75);
-                card.SetTarget(new TransformProps(positions[index]));
+                card.SetTarget(new TransformProps(positions[index]), CardViewTweenMode.ExponentialDecay);
             }).ToArray());
 
             uiRoot.SetActive(true);
@@ -125,7 +129,10 @@ public class MulliganView : MonoBehaviour {
 
     public void AddReplacedCard(CardView card) {
         int indexInHand = card.card.location.IndexInHand;
-        card.SetTarget(new TransformProps(positions[indexInHand]));
+
+        card.SetTarget(new TransformProps(positions[indexInHand]), discardTweenDuration, (t) => discardTweenEase.Evaluate(t));
+        card.Flip(false, discardFlipDuration);
+
         card.gameObject.SetActive(true);
         cards[indexInHand] = card;
 
@@ -146,7 +153,9 @@ public class MulliganView : MonoBehaviour {
 
         card.OnClickBegin = () => {
             cardSwapAction(card);
-            card.SetTarget(GetNextDiscardTransformProps());
+
+            card.SetTarget(GetNextDiscardTransformProps(), discardTweenDuration, (t) => discardTweenEase.Evaluate(t));
+            card.Flip(true, discardFlipDuration);
             discardPile.Append(card);
             cards[indexInHand] = null;
             card.IsInteractive = false;

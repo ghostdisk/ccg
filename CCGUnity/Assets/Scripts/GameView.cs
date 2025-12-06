@@ -5,6 +5,7 @@ using System;
 using UnityEngine.UI;
 using CCG.Client;
 using CCG.Shared;
+using System.Threading.Tasks;
 
 [Serializable]
 public class PlayerViews {
@@ -36,6 +37,8 @@ public class GameView : MonoBehaviour {
     public Button matchmakingButton;
 
     public Dictionary<CardLocation, Target> Targets = new();
+    private Queue<Func<Task>> animationTimeline = new Queue<Func<Task>>();
+    bool areAnimationsRunning = false;
 
     void Start() {
         menuUiRoot.SetActive(true);
@@ -67,5 +70,22 @@ public class GameView : MonoBehaviour {
     void OnMatchmakingButtonPress() {
         client.OnMatchmakingButtonPress();
     }
+
+    public void Animate(Func<Task> func) {
+        animationTimeline.Enqueue(func);
+        if (!areAnimationsRunning) {
+            _ = ProcessAnimationQueueAsync();
+        }
+    }
+
+    async Task ProcessAnimationQueueAsync() {
+        areAnimationsRunning = true;
+        Func<Task> func;
+        while (animationTimeline.TryDequeue(out func)) {
+            await func();
+        }
+        areAnimationsRunning = false;
+    }
+
 
 }

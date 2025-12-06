@@ -19,7 +19,7 @@ public class PlayCardView : MonoBehaviour {
         this.card = card;
         this.fromDrag = fromDrag;
         this.callback = callback;
-        card.SetTarget(new TransformProps(playedCardPosition));
+        card.SetTarget(new TransformProps(playedCardPosition), CardViewTweenMode.ExponentialDecay);
 
         foreach (CardLocation location in targetLocations) {
             G.Targets[location].Activate();

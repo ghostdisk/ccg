@@ -1776,11 +1776,44 @@ MonoBehaviour:
   uiRoot: {fileID: 2859775477356961215}
   infoText: {fileID: 4196811095955854706}
   doneButton: {fileID: 1341367465295348953}
-  fog: {fileID: 6883546439390922327}
   discardClimbPerCard: 0.02
   discardRandomRotation: 45
-  mulligansRemaining: 0
-  confirmedMulligansRemaining: 0
+  discardTweenEase:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0.022678092
+      outSlope: 0.022678092
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0.34858042
+    - serializedVersion: 3
+      time: 0.8280672
+      value: 0.8567018
+      inSlope: 2.165828
+      outSlope: 2.165828
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.24478328
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0.2973135
+      outSlope: 0.2973135
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.29208252
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  discardFlipDuration: 0.4
+  discardTweenDuration: 0.5
+  fog: {fileID: 6883546439390922327}
 --- !u!1 &4557076080104910209
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,13 +5,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 
 public class UnityClientGame : ClientGame {
     private GameView G;
     private UnityClient client;
-    private Queue<Func<Task>> animationTimeline = new Queue<Func<Task>>();
-    bool areAnimationsRunning = false;
 
     public UnityClientGame(UnityClient client, ClientPlayer myPlayer, ClientPlayer player0, ClientPlayer player1) : base(myPlayer, player0, player1) {
         this.client = client;
@@ -28,12 +25,12 @@ public class UnityClientGame : ClientGame {
         if (player == myPlayer) {
             G.mulliganView.SetRemaining(G.mulliganView.mulligansRemaining, mulliganResult.mulligansRemaining);
 
-            Animate(async () => {
+            G.Animate(async () => {
                 DeckView deckView = G.GetPlayerViews(player).deck;
                 UnityCard card = (UnityCard)GetCard(mulliganResult.newCardId);
 
                 card.location = CardLocation.Hand(mulliganResult.player, indexInHand);
-                card.view.SetTarget(deckView.GetTransformProps());
+                card.view.SetTarget(deckView.GetTransformProps(), CardViewTweenMode.ExponentialDecay);
                 card.view.JumpToTarget();
 
                 G.mulliganView.AddReplacedCard(card.view);
@@ -51,6 +48,7 @@ public class UnityClientGame : ClientGame {
             newCard.location = CardLocation.Hand(mulliganResult.player, indexInHand);
             views.hand.RemoveCard(oldCard.view);
             views.hand.AddCard(newCard.view);
+            newCard.view.JumpToTarget();
         }
     }
 
@@ -77,7 +75,7 @@ public class UnityClientGame : ClientGame {
                 break;
             case CardLocationType.Board:
                 board[newLocation.val1, newLocation.val2].card = cardView.card;
-                cardView.SetTarget(new TransformProps(G.Targets[newLocation].transform));
+                cardView.SetTarget(new TransformProps(G.Targets[newLocation].transform), CardViewTweenMode.ExponentialDecay);
 
                 if (!cardView.gameObject.activeSelf) {
                     Debug.LogWarning("Card placed on board was inactive. This is likely a desync.");
@@ -124,7 +122,7 @@ public class UnityClientGame : ClientGame {
     }
 
     protected override void S2CBlindPhaseStartHandler(S2CBlindPhaseStart blindPhaseStart) {
-        Animate(async () => {
+        G.Animate(async () => {
             HandView handView = G.myViews.hand;
 
             List<CardView> handCards = G.mulliganView.Deactivate();
@@ -170,18 +168,24 @@ public class UnityClientGame : ClientGame {
         }
 
         for (int cardIndex = 0; cardIndex < gameStarted.myHand.Count; cardIndex++) {
-            UnityCard card = (UnityCard)GetCard(gameStarted.myHand[cardIndex]);
-            card.location = CardLocation.Hand(myPlayer.index, cardIndex);
-            DrawCard(myPlayer, card);
+            UnityCard myCard = (UnityCard)GetCard(gameStarted.myHand[cardIndex]);
+            myCard.location = CardLocation.Hand(myPlayer.index, cardIndex);
+
+            UnityCard opponentCard = (UnityCard)GetCard(gameStarted.opponentHand[cardIndex]);
+            opponentCard.location = CardLocation.Hand(opponentPlayer.index, cardIndex);
+
+            myPlayer.hand.Add(myCard);
+            opponentPlayer.hand.Add(opponentCard);
+
+            G.Animate(async () => {
+                AnimateDrawCard(myPlayer, myCard);
+                myCard.view.Flip(false, 0.30f);
+                AnimateDrawCard(opponentPlayer, opponentCard);
+                await Task.Delay(150);
+            });
         }
 
-        for (int cardIndex = 0; cardIndex < gameStarted.opponentHand.Count; cardIndex++) {
-            UnityCard card = (UnityCard)GetCard(gameStarted.opponentHand[cardIndex]);
-            card.location = CardLocation.Hand(opponentPlayer.index, cardIndex);
-            DrawCard(opponentPlayer, card);
-        }
-
-        Animate(async () => {
+        G.Animate(async () => {
             Action doneAction = () => {
                 client.Send(new C2SDoneWithMulligan());
                 G.mulliganView.SetRemaining(0, 0);
@@ -204,6 +208,7 @@ public class UnityClientGame : ClientGame {
 
         foreach (var play in mainPhaseStart.plays) {
             UnityCard card = (UnityCard)RevealCard(play.cardInfo);
+            card.view.Flip(false, 0.30f);
             PlaceCard(card.view, CardLocation.Board(play.position));
         }
 
@@ -219,44 +224,22 @@ public class UnityClientGame : ClientGame {
         return card;
     }
 
-    protected override void DrawCard(ClientPlayer player, Card _card) {
-        base.DrawCard(player, _card);
+    void AnimateDrawCard(ClientPlayer player, Card _card) {
+        PlayerViews views = G.GetPlayerViews(player);
+        UnityCard card = (UnityCard)_card;
 
-        Animate(async () => {
-            PlayerViews views = G.GetPlayerViews(player);
-            UnityCard card = (UnityCard)_card;
+        card.view.SetTarget(views.deck.GetTransformProps(), CardViewTweenMode.ExponentialDecay);
+        card.view.JumpToTarget();
+        card.view.gameObject.SetActive(true);
 
-            card.view.SetTarget(views.deck.GetTransformProps());
-            card.view.JumpToTarget();
-            card.view.gameObject.SetActive(true);
-
-            views.hand.AddCard(card.view);
-            views.hand.UpdateCardsPositions();
-
-            await Task.Delay(100);
-        });
-    }
-
-    public void Animate(Func<Task> func) {
-        animationTimeline.Enqueue(func);
-        if (!areAnimationsRunning) {
-            _ = ProcessAnimationQueueAsync();
-        }
-    }
-
-    async Task ProcessAnimationQueueAsync() {
-        areAnimationsRunning = true;
-        Func<Task> func;
-        while (animationTimeline.TryDequeue(out func)) {
-            await func();
-        }
-        areAnimationsRunning = false;
+        views.hand.AddCard(card.view);
+        views.hand.UpdateCardsPositions();
     }
 
     public override Card RevealCard(CardInfo cardInfo) {
         UnityCard card = (UnityCard)base.RevealCard(cardInfo);
-        card.view.OnCardInfoChanged();
+        card.view.UpdateInfo();
         return card;
-    }
+}
 }
 
