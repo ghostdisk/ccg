@@ -73,6 +73,7 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
     }
 
     protected virtual void S2CGameStartedHandler(S2CGameStarted gameStarted) {
+        /*
         foreach (CardInfo cardInfo in gameStarted.myHandInfos) {
             RevealCard(cardInfo);
         }
@@ -82,6 +83,7 @@ public class ClientGame : Game<ClientPlayer, ClientGame> {
         foreach (int cardId in gameStarted.opponentHand) {
             DrawCard(opponentPlayer, GetCard(cardId));
         }
+        */
     }
 
     protected virtual void S2CMulliganResultHandler(S2CMulliganResult mulliganResult) {

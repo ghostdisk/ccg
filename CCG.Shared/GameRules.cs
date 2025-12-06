@@ -7,4 +7,5 @@ public static class GameRules {
     public const int Rows = 6;
     public const int HomeRows = 3;
     public const int BlindStageCards = 3;
+    public const int DeckSize = 32;
 }

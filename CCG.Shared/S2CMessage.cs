@@ -28,6 +28,8 @@ public class S2CGameStarted : S2CMessage {
     [Key(3)] public int opponentMulligans = 0;
     [Key(4)] public List<CardInfo> myHandInfos = new();
     [Key(5)] public int myPlayerIndex = 0;
+    [Key(6)] public int myDeckSize = 0;
+    [Key(7)] public int opponentDeckSize = 0;
 }
 
 [MessagePackObject]

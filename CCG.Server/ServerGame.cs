@@ -37,6 +37,8 @@ class ServerGame : Game<ServerPlayer,ServerGame> {
             message.myMulligans = player.mulligansRemaining;
             message.opponentMulligans = player.opponent.mulligansRemaining;
             message.myPlayerIndex = player.index;
+            message.myDeckSize = GameRules.DeckSize;
+            message.opponentDeckSize = GameRules.DeckSize; // TODO: cmon
 
             foreach (Card card in player.hand) {
                 message.myHand.Add(card.card_id);

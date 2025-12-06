@@ -167,6 +167,9 @@ public class UnityClientGame : ClientGame {
             RevealCard(myHandInfo);
         }
 
+        G.myViews.deck.RemainingCards = gameStarted.myDeckSize;
+        G.opponentViews.deck.RemainingCards = gameStarted.opponentDeckSize;
+
         for (int cardIndex = 0; cardIndex < gameStarted.myHand.Count; cardIndex++) {
             UnityCard myCard = (UnityCard)GetCard(gameStarted.myHand[cardIndex]);
             myCard.location = CardLocation.Hand(myPlayer.index, cardIndex);
@@ -177,11 +180,15 @@ public class UnityClientGame : ClientGame {
             myPlayer.hand.Add(myCard);
             opponentPlayer.hand.Add(opponentCard);
 
+
             G.Animate(async () => {
                 AnimateDrawCard(myPlayer, myCard);
                 myCard.view.Flip(false, 0.30f);
                 AnimateDrawCard(opponentPlayer, opponentCard);
                 await Task.Delay(150);
+
+                G.myViews.deck.RemainingCards--;
+                G.opponentViews.deck.RemainingCards--;
             });
         }
 
