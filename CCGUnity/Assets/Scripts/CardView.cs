@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using CCG.Shared;
+using TMPro;
 
 public enum CardViewTweenMode {
     None,
@@ -25,6 +26,7 @@ public class CardView : MonoBehaviour {
     [SerializeField] Color emissionColor;
     [SerializeField] float emissionStrength = 0.0f;
     [SerializeField] Animation cardAnimation;
+    [SerializeField] TextMeshPro strengthText;
 
     TransformProps target;
     public TransformProps childTarget;
@@ -156,6 +158,7 @@ public class CardView : MonoBehaviour {
 
     public void UpdateInfo() {
         artMaterial.mainTexture = GlobalRefs.Instance.cardArt[card.prototype.id];
+        strengthText.text = card.strength.ToString();
     }
 
     public void Flip(bool faceDown, float duration) {
